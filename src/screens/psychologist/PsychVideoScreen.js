@@ -1,61 +1,72 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { supabase } from '../../services/supabase';
 
-export default function PsychVideoScreen({ route, navigation }) {
+export default function PsychVideoScreen({ navigation, route }) {
   const { bookingId } = route.params || {};
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const webviewRef = useRef(null);
+  const webRef = useRef(null);
 
-  const roomName = `AnimiSession${bookingId || 'Default'}`;
-  const jitsiUrl = `https://meet.jit.si/${roomName}`;
+  const roomName = 'animi-session-' + (bookingId || 'default');
+  const jitsiUrl = `https://meet.jit.si/${roomName}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&interfaceConfig.SHOW_JITSI_WATERMARK=false`;
 
-  if (error) return (
-    <View style={s.center}>
-      <Text style={s.errorIcon}>📵</Text>
-      <Text style={s.errorText}>Ne udalos podklyuchitsya</Text>
-      <TouchableOpacity style={s.retryBtn} onPress={() => setError(false)}>
-        <Text style={s.retryText}>Povtorit</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={s.backBtn2} onPress={() => navigation.goBack()}>
-        <Text style={s.backBtn2Text}>Nazad</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const handleEnd = () => {
+    Alert.alert(
+      'Завершить сессию?',
+      'Вы уверены? Клиент также будет отключён.',
+      [
+        { text: 'Отмена', style: 'cancel' },
+        {
+          text: 'Завершить',
+          style: 'destructive',
+          onPress: async () => {
+            if (bookingId) {
+              await supabase.from('bookings').update({ status: 'completed' }).eq('id', bookingId);
+            }
+            navigation.goBack();
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={s.container}>
-      <View style={s.topBar}>
-        <TouchableOpacity style={s.endBtn} onPress={() => navigation.goBack()}>
-          <Text style={s.endBtnText}>📵 Zavershit</Text>
+      <View style={s.header}>
+        <View style={s.liveIndicator}>
+          <View style={s.liveDot} />
+          <Text style={s.liveText}>СЕССИЯ</Text>
+        </View>
+        <Text style={s.headerTitle}>Видеосессия</Text>
+        <TouchableOpacity style={s.endBtn} onPress={handleEnd}>
+          <Text style={s.endBtnText}>Завершить</Text>
         </TouchableOpacity>
-        <Text style={s.topBarTitle}>Sessiya s klientom</Text>
-        <View style={{ width: 100 }} />
       </View>
 
       {loading && (
         <View style={s.loadingOverlay}>
           <ActivityIndicator size="large" color="#C9A84C" />
-          <Text style={s.loadingText}>Podklyucheniye...</Text>
+          <Text style={s.loadingText}>Подключение к сессии...</Text>
         </View>
       )}
 
       <WebView
-        ref={webviewRef}
+        ref={webRef}
         source={{ uri: jitsiUrl }}
         style={s.webview}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={() => setLoading(false)}
-        onError={() => { setLoading(false); setError(true); }}
+        allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
-        allowsInlineMediaPlayback={true}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        originWhitelist={['*']}
-        allowsFullscreenVideo={true}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => {
+          setLoading(false);
+          Alert.alert('Ошибка подключения', 'Проверьте интернет и попробуйте снова.');
+        }}
+        javaScriptEnabled
+        domStorageEnabled
       />
     </View>
   );
@@ -63,18 +74,14 @@ export default function PsychVideoScreen({ route, navigation }) {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0F2447' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F2447', padding: 32 },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingTop: 52, backgroundColor: '#0F2447' },
-  endBtn: { backgroundColor: '#C0392B', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  endBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  topBarTitle: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12, backgroundColor: '#0F2447' },
+  liveIndicator: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#C9A84C' },
+  liveText: { color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
+  headerTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  endBtn: { backgroundColor: 'rgba(239,68,68,0.15)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 10 },
+  endBtnText: { color: '#f87171', fontSize: 12, fontWeight: '700' },
   webview: { flex: 1 },
-  loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F2447', zIndex: 10 },
-  loadingText: { color: '#fff', fontSize: 16, marginTop: 16 },
-  errorIcon: { fontSize: 60, marginBottom: 20 },
-  errorText: { color: '#E07070', fontSize: 18, fontWeight: '700', marginBottom: 24 },
-  retryBtn: { backgroundColor: '#2E5DA6', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 16, marginBottom: 12 },
-  retryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  backBtn2: { paddingHorizontal: 24, paddingVertical: 10 },
-  backBtn2Text: { color: 'rgba(255,255,255,0.45)', fontSize: 14 },
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0F2447', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+  loadingText: { color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 14 },
 });

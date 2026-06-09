@@ -1,133 +1,115 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { TEXTS } from '../auth/WelcomeScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PHASES = [
-  { label: 'Vdokh', seconds: 4, color: '#2E5DA6', toScale: 1.5 },
-  { label: 'Zaderzhka', seconds: 4, color: '#C9A84C', toScale: 1.5 },
-  { label: 'Vydokh', seconds: 6, color: '#2D7A4F', toScale: 0.7 },
+  { key: 'inhale',  duration: 4000 },
+  { key: 'hold',   duration: 4000 },
+  { key: 'exhale', duration: 6000 },
 ];
 
 export default function BreathingScreen({ navigation }) {
-  const [running, setRunning] = useState(false);
-  const [phaseIndex, setPhaseIndex] = useState(0);
-  const [cycle, setCycle] = useState(0);
-  const [countdown, setCountdown] = useState(PHASES[0].seconds);
-  const [done, setDone] = useState(false);
-  const scale = useRef(new Animated.Value(1)).current;
-  const timerRef = useRef(null);
-  const animRef = useRef(null);
+  const [lang, setLang]         = useState('ru');
+  const [running, setRunning]   = useState(false);
+  const [phaseIdx, setPhaseIdx] = useState(0);
+  const [counter, setCounter]   = useState(4);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(0.5)).current;
+  const animRef   = useRef(null);
+  const timerRef  = useRef(null);
 
-  const stopAll = () => {
+  useEffect(() => {
+    AsyncStorage.getItem('lang').then(l => setLang(l || 'ru'));
+    return () => { clearAll(); };
+  }, []);
+
+  const clearAll = () => {
+    if (animRef.current)  { animRef.current.stop(); }
+    if (timerRef.current) { clearInterval(timerRef.current); }
+  };
+
+  const runPhase = (idx) => {
+    const phase = PHASES[idx % PHASES.length];
+    const isInhale = phase.key === 'inhale';
+    const isHold   = phase.key === 'hold';
+    const secs = phase.duration / 1000;
+    setPhaseIdx(idx % PHASES.length);
+    setCounter(secs);
+
     if (timerRef.current) clearInterval(timerRef.current);
-    if (animRef.current) animRef.current.stop();
-  };
-
-  useEffect(() => () => stopAll(), []);
-
-  const runPhase = (pIdx, currentCycle) => {
-    const phase = PHASES[pIdx];
-    setPhaseIndex(pIdx);
-    setCountdown(phase.seconds);
-
-    animRef.current = Animated.timing(scale, {
-      toValue: phase.toScale,
-      duration: phase.seconds * 1000,
-      useNativeDriver: true,
-    });
-    animRef.current.start();
-
-    let remaining = phase.seconds;
+    let c = secs;
     timerRef.current = setInterval(() => {
-      remaining--;
-      setCountdown(remaining);
-      if (remaining <= 0) {
-        clearInterval(timerRef.current);
-        const nextPhase = (pIdx + 1) % PHASES.length;
-        const newCycle = nextPhase === 0 ? currentCycle + 1 : currentCycle;
-        setCycle(newCycle);
-        if (newCycle >= 4) {
-          setRunning(false);
-          setDone(true);
-          Animated.timing(scale, { toValue: 1, duration: 600, useNativeDriver: true }).start();
-        } else {
-          runPhase(nextPhase, newCycle);
-        }
-      }
+      c -= 1;
+      setCounter(c);
+      if (c <= 0) { clearInterval(timerRef.current); }
     }, 1000);
+
+    if (animRef.current) animRef.current.stop();
+    const toScale   = isInhale ? 1.6 : isHold ? 1.6 : 1;
+    const toOpacity = isInhale ? 1   : isHold ? 1   : 0.5;
+    animRef.current = Animated.parallel([
+      Animated.timing(scaleAnim,   { toValue: toScale,   duration: phase.duration, useNativeDriver: true }),
+      Animated.timing(opacityAnim, { toValue: toOpacity, duration: phase.duration, useNativeDriver: true }),
+    ]);
+    animRef.current.start(({ finished }) => {
+      if (finished) runPhase(idx + 1);
+    });
   };
 
-  const handleStart = () => {
-    setRunning(true);
-    setDone(false);
-    setCycle(0);
-    runPhase(0, 0);
-  };
+  const handleStart = () => { setRunning(true); runPhase(0); };
+  const handleStop  = () => { setRunning(false); clearAll(); scaleAnim.setValue(1); opacityAnim.setValue(0.5); setPhaseIdx(0); setCounter(4); };
 
-  const handleStop = () => {
-    stopAll();
-    setRunning(false);
-    setPhaseIndex(0);
-    setCycle(0);
-    setDone(false);
-    Animated.timing(scale, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-  };
-
-  const phase = PHASES[phaseIndex];
+  const t = TEXTS[lang];
+  const phaseLabels = { inhale: t.breathInhale, hold: t.breathHold, exhale: t.breathExhale };
+  const currentLabel = phaseLabels[PHASES[phaseIdx].key];
 
   return (
     <View style={s.container}>
-      <TouchableOpacity style={s.backBtn} onPress={() => { stopAll(); navigation.goBack(); }}>
-        <Text style={s.backBtnText}>←</Text>
-      </TouchableOpacity>
-
-      <Text style={s.title}>Dykhaniye pered sessiyey</Text>
-      <Text style={s.subtitle}>4 tsikla dlya rasslableniya</Text>
-
-      <View style={s.circleWrap}>
-        <Animated.View
-          style={[s.circle, { backgroundColor: phase.color, transform: [{ scale }] }]}
-        >
-          <Text style={s.phaseLabel}>{done ? '✓' : phase.label}</Text>
-          <Text style={s.phaseCount}>{done ? 'Otlichno!' : countdown}</Text>
-        </Animated.View>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={s.back}>←</Text>
+        </TouchableOpacity>
+        <Text style={s.title}>{t.breathTitle}</Text>
+        <View style={{ width: 32 }} />
       </View>
 
-      <Text style={s.cycleText}>{cycle} / 4 tsiklov</Text>
+      <Text style={s.sub}>{t.breathSub}</Text>
 
-      {!running && !done && (
-        <TouchableOpacity style={s.startBtn} onPress={handleStart}>
-          <Text style={s.startBtnText}>Nachat dykhaniye</Text>
-        </TouchableOpacity>
-      )}
-      {running && (
-        <TouchableOpacity style={s.stopBtn} onPress={handleStop}>
-          <Text style={s.stopBtnText}>Ostanovit</Text>
-        </TouchableOpacity>
-      )}
-      {done && (
-        <TouchableOpacity style={s.doneBtn} onPress={() => navigation.goBack()}>
-          <Text style={s.doneBtnText}>Otlichno! Prodolzhit</Text>
-        </TouchableOpacity>
-      )}
+      <View style={s.circleWrap}>
+        <Animated.View style={[s.circleOuter, { transform: [{ scale: scaleAnim }], opacity: opacityAnim }]} />
+        <View style={s.circleInner}>
+          {running ? (
+            <>
+              <Text style={s.circleLabel}>{currentLabel}</Text>
+              <Text style={s.circleCount}>{counter}</Text>
+            </>
+          ) : (
+            <Text style={s.circleReady}>∞</Text>
+          )}
+        </View>
+      </View>
+
+      <TouchableOpacity style={[s.btn, running && s.btnStop]} onPress={running ? handleStop : handleStart}>
+        <Text style={s.btnText}>{running ? t.breathStop : t.breathStart}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F2447', alignItems: 'center', paddingTop: 60 },
-  backBtn: { position: 'absolute', top: 56, left: 24, width: 36, height: 36, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  backBtnText: { fontSize: 18, color: '#fff' },
-  title: { fontSize: 20, fontWeight: '700', color: '#fff', marginTop: 16, marginBottom: 6, textAlign: 'center' },
-  subtitle: { fontSize: 13, color: 'rgba(255,255,255,0.45)', marginBottom: 50, textAlign: 'center', paddingHorizontal: 32 },
-  circleWrap: { width: 250, height: 250, justifyContent: 'center', alignItems: 'center' },
-  circle: { width: 150, height: 150, borderRadius: 75, justifyContent: 'center', alignItems: 'center' },
-  phaseLabel: { fontSize: 17, fontWeight: '700', color: '#fff', marginBottom: 6 },
-  phaseCount: { fontSize: 38, fontWeight: '700', color: 'rgba(255,255,255,0.9)' },
-  cycleText: { fontSize: 14, color: 'rgba(255,255,255,0.4)', marginTop: 20, marginBottom: 30 },
-  startBtn: { backgroundColor: '#2E5DA6', paddingHorizontal: 40, paddingVertical: 16, borderRadius: 20 },
-  startBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  stopBtn: { backgroundColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 18 },
-  stopBtnText: { color: 'rgba(255,255,255,0.6)', fontSize: 15 },
-  doneBtn: { backgroundColor: '#2D7A4F', paddingHorizontal: 36, paddingVertical: 16, borderRadius: 20 },
-  doneBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  container:{flex:1,backgroundColor:'#0F2447',alignItems:'center'},
+  header:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:24,paddingTop:56,paddingBottom:8,width:'100%'},
+  back:{color:'#C9A84C',fontSize:22},
+  title:{color:'#fff',fontSize:16,fontWeight:'700'},
+  sub:{color:'rgba(255,255,255,0.4)',fontSize:13,marginBottom:60,marginTop:8},
+  circleWrap:{justifyContent:'center',alignItems:'center',marginBottom:60},
+  circleOuter:{width:220,height:220,borderRadius:110,backgroundColor:'rgba(201,168,76,0.15)',borderWidth:2,borderColor:'rgba(201,168,76,0.3)',position:'absolute'},
+  circleInner:{width:160,height:160,borderRadius:80,backgroundColor:'rgba(46,93,166,0.2)',borderWidth:1.5,borderColor:'rgba(46,93,166,0.4)',justifyContent:'center',alignItems:'center'},
+  circleLabel:{color:'#fff',fontSize:14,fontWeight:'600',marginBottom:4},
+  circleCount:{color:'#C9A84C',fontSize:36,fontWeight:'900'},
+  circleReady:{color:'rgba(255,255,255,0.3)',fontSize:48},
+  btn:{backgroundColor:'#C9A84C',borderRadius:18,paddingHorizontal:48,paddingVertical:16,elevation:6},
+  btnStop:{backgroundColor:'rgba(239,68,68,0.7)'},
+  btnText:{color:'#0F2447',fontSize:16,fontWeight:'800'},
 });
