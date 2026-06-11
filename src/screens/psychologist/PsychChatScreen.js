@@ -44,10 +44,11 @@ export default function PsychChatScreen({ navigation, route }) {
   const subscribeMessages = (bId) => {
     supabase.channel('psych-chat-' + bId)
       .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'messages',
-        filter: 'booking_id=eq.' + bId,
-      }, (payload) => { setMessages(prev => [...prev, payload.new]); })
-      .subscribe();
+        event: 'INSERT', schema: 'public',
+        table: 'messages', filter: 'booking_id=eq.' + bId,
+      }, (payload) => {
+        setMessages(prev => [...prev, payload.new]);
+      }).subscribe();
   };
 
   const sendMessage = async () => {
@@ -55,16 +56,25 @@ export default function PsychChatScreen({ navigation, route }) {
     setSending(true);
     const msg = text.trim();
     setText('');
-    await supabase.from('messages').insert({ booking_id: bookingId, sender_id: userId, content: msg });
+    await supabase.from('messages').insert({
+      booking_id: bookingId, sender_id: userId, content: msg,
+    });
     setSending(false);
   };
 
-  if (loading) return <View style={s.loader}><ActivityIndicator size="large" color="#C9A84C" /></View>;
+  if (loading) return (
+    <View style={s.loader}><ActivityIndicator size="large" color="#C9A84C" /></View>
+  );
 
   return (
-    <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView
+      style={s.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}><Text style={s.back}>←</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={s.back}>←</Text>
+        </TouchableOpacity>
         <View style={s.headerInfo}>
           <Text style={s.headerTitle}>{clientName || 'Клиент'}</Text>
           <Text style={s.headerSub}>Чат с клиентом</Text>
@@ -101,8 +111,13 @@ export default function PsychChatScreen({ navigation, route }) {
           onChangeText={setText}
           multiline
         />
-        <TouchableOpacity style={s.sendBtn} onPress={sendMessage} disabled={sending || !text.trim()}>
-          {sending ? <ActivityIndicator color="#0F2447" size="small" />
+        <TouchableOpacity
+          style={s.sendBtn}
+          onPress={sendMessage}
+          disabled={sending || !text.trim()}
+        >
+          {sending
+            ? <ActivityIndicator color="#0F2447" size="small" />
             : <Text style={s.sendBtnText}>↑</Text>}
         </TouchableOpacity>
       </View>

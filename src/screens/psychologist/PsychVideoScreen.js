@@ -11,33 +11,29 @@ export default function PsychVideoScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const webRef = useRef(null);
 
-  const roomName = 'animi-session-' + (bookingId || 'default');
+  const roomName = 'animinava-session-' + (bookingId || 'default');
   const jitsiUrl = `https://meet.jit.si/${roomName}#config.startWithAudioMuted=false&config.startWithVideoMuted=false&interfaceConfig.SHOW_JITSI_WATERMARK=false`;
 
   const handleEnd = () => {
-    Alert.alert(
-      'Завершить сессию?',
-      'Вы уверены? Клиент также будет отключён.',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        {
-          text: 'Завершить',
-          style: 'destructive',
-          onPress: async () => {
-            if (bookingId) {
-              await supabase.from('bookings').update({ status: 'completed' }).eq('id', bookingId);
-            }
-            navigation.goBack();
-          },
+    Alert.alert('Завершить сессию?', 'Клиент также будет отключён.', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Завершить', style: 'destructive',
+        onPress: async () => {
+          if (bookingId) {
+            await supabase.from('bookings')
+              .update({ status: 'completed' }).eq('id', bookingId);
+          }
+          navigation.goBack();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <View style={s.liveIndicator}>
+        <View style={s.liveRow}>
           <View style={s.liveDot} />
           <Text style={s.liveText}>СЕССИЯ</Text>
         </View>
@@ -63,7 +59,7 @@ export default function PsychVideoScreen({ navigation, route }) {
         onLoadEnd={() => setLoading(false)}
         onError={() => {
           setLoading(false);
-          Alert.alert('Ошибка подключения', 'Проверьте интернет и попробуйте снова.');
+          Alert.alert('Ошибка подключения', 'Проверьте интернет.');
         }}
         javaScriptEnabled
         domStorageEnabled
@@ -74,8 +70,8 @@ export default function PsychVideoScreen({ navigation, route }) {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0F2447' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12, backgroundColor: '#0F2447' },
-  liveIndicator: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12 },
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#C9A84C' },
   liveText: { color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
   headerTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
