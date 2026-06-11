@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Animi Nava",
-    "slug": "animi-nava",
+    "slug": "Animi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,6 +20,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5bd6a209-e800-4424-ae9d-225a35b5f9e7"
+      }
     }
   }
 }
