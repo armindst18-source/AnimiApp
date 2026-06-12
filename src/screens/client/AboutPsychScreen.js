@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { TEXTS } from '../auth/WelcomeScreen';
 
 const FACTS_RU = [
@@ -19,8 +19,8 @@ const FACTS_EN = [
 ];
 
 export default function AboutPsychScreen({ navigation, route }) {
-  const lang  = route.params?.lang || 'ru';
-  const t     = TEXTS[lang];
+  const lang = route.params?.lang || 'ru';
+  const t = TEXTS[lang];
   const facts = lang === 'ru' ? FACTS_RU : FACTS_EN;
 
   return (
@@ -35,11 +35,9 @@ export default function AboutPsychScreen({ navigation, route }) {
 
       <View style={s.heroSection}>
         <View style={s.photoWrap}>
-          <Image
-            source={require('../../assets/psychologist.png')}
-            style={s.photo}
-            resizeMode="cover"
-          />
+          <View style={s.psychPlaceholder}>
+            <Text style={s.psychPlaceholderText}>👩‍⚕️</Text>
+          </View>
         </View>
         <Text style={s.psychName}>Маргарита Журавлёва</Text>
         <Text style={s.psychRole}>{lang === 'ru' ? 'Практикующий психолог' : 'Practicing psychologist'}</Text>
@@ -73,8 +71,9 @@ const s = StyleSheet.create({
   back: { color: '#1A3D7C', fontSize: 22, fontWeight: '700' },
   headerTitle: { fontSize: 16, fontWeight: '700', color: '#0F2447' },
   heroSection: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 24 },
-  photoWrap: { width: 120, height: 120, borderRadius: 36, overflow: 'hidden', marginBottom: 16, elevation: 8 },
-  photo: { width: 120, height: 120 },
+  photoWrap: { width: 120, height: 120, borderRadius: 36, overflow: 'hidden', marginBottom: 16, elevation: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: '#2E5DA6' },
+  psychPlaceholder: { width: 120, height: 120, justifyContent: 'center', alignItems: 'center' },
+  psychPlaceholderText: { fontSize: 48 },
   psychName: { fontSize: 22, fontWeight: '800', color: '#0F2447', marginBottom: 4 },
   psychRole: { fontSize: 13, color: '#6B7A99', marginBottom: 12 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },

@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, ActivityIndicator, Image,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { supabase } from '../../services/supabase';
 import { TEXTS } from '../auth/WelcomeScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const getGreeting = (t) => {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12)  return t.goodMorning;
+  if (hour >= 5 && hour < 12) return t.goodMorning;
   if (hour >= 12 && hour < 18) return t.goodDay;
   return t.goodEvening;
 };
@@ -20,35 +17,27 @@ const getCountdown = (dateStr, timeStr) => {
   const now = new Date();
   const diff = sessionDate - now;
   if (diff <= 0) return null;
-  const hours   = Math.floor(diff / (1000 * 60 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
   return { hours, minutes };
 };
 
 export default function HomeScreen({ navigation }) {
-  const [user, setUser]               = useState(null);
+  const [user, setUser] = useState(null);
   const [nextBooking, setNextBooking] = useState(null);
-  const [loading, setLoading]         = useState(true);
-  const [lang, setLang]               = useState('ru');
-  const [countdown, setCountdown]     = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [lang, setLang] = useState('ru');
+  const [countdown, setCountdown] = useState(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   useEffect(() => {
     if (!nextBooking) return;
     const timer = setInterval(() => {
-      const cd = getCountdown(
-        nextBooking.time_slots?.date,
-        nextBooking.time_slots?.start_time
-      );
+      const cd = getCountdown(nextBooking.time_slots?.date, nextBooking.time_slots?.start_time);
       setCountdown(cd);
     }, 60000);
-    setCountdown(getCountdown(
-      nextBooking.time_slots?.date,
-      nextBooking.time_slots?.start_time
-    ));
+    setCountdown(getCountdown(nextBooking.time_slots?.date, nextBooking.time_slots?.start_time));
     return () => clearInterval(timer);
   }, [nextBooking]);
 
@@ -57,8 +46,7 @@ export default function HomeScreen({ navigation }) {
       const l = await AsyncStorage.getItem('lang') || 'ru';
       setLang(l);
       const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile }  = await supabase
-        .from('users').select('name').eq('id', user.id).single();
+      const { data: profile } = await supabase.from('users').select('name').eq('id', user.id).single();
       setUser({ ...user, name: profile?.name });
       const today = new Date().toISOString().split('T')[0];
       const { data: bk } = await supabase
@@ -73,12 +61,10 @@ export default function HomeScreen({ navigation }) {
     finally { setLoading(false); }
   };
 
-  const t       = TEXTS[lang];
+  const t = TEXTS[lang];
   const initial = user?.name?.[0]?.toUpperCase() || 'A';
 
-  if (loading) return (
-    <View style={s.loader}><ActivityIndicator size="large" color="#1A3D7C" /></View>
-  );
+  if (loading) return <View style={s.loader}><ActivityIndicator size="large" color="#1A3D7C" /></View>;
 
   return (
     <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
@@ -96,30 +82,18 @@ export default function HomeScreen({ navigation }) {
         <View style={s.sessionCard}>
           <Text style={s.sessionLabel}>{t.nextSession}</Text>
           <Text style={s.sessionDate}>{nextBooking.time_slots?.date}</Text>
-          <Text style={s.sessionTime}>
-            {nextBooking.time_slots?.start_time} — {nextBooking.time_slots?.end_time} {t.duration}
-          </Text>
+          <Text style={s.sessionTime}>{nextBooking.time_slots?.start_time} — {nextBooking.time_slots?.end_time} {t.duration}</Text>
           {countdown && (
             <View style={s.countdownWrap}>
               <Text style={s.countdownLabel}>{t.sessionCountdown}</Text>
-              <Text style={s.countdownValue}>
-                {countdown.hours}{t.hours} {countdown.minutes}{t.minutes}
-              </Text>
+              <Text style={s.countdownValue}>{countdown.hours}{t.hours} {countdown.minutes}{t.minutes}</Text>
             </View>
           )}
           <View style={s.sessionRow}>
             <View style={[s.badge, nextBooking.status === 'pending_payment' && s.badgePending]}>
-              <Text style={s.badgeText}>
-                {nextBooking.status === 'confirmed' ? t.paid : t.pending}
-              </Text>
+              <Text style={s.badgeText}>{nextBooking.status === 'confirmed' ? t.paid : t.pending}</Text>
             </View>
-            <TouchableOpacity
-              style={s.joinBtn}
-              onPress={() => navigation.navigate('Breathing', {
-                bookingId: nextBooking.id,
-                lang,
-              })}
-            >
+            <TouchableOpacity style={s.joinBtn} onPress={() => navigation.navigate('Breathing', { bookingId: nextBooking.id, lang })}>
               <Text style={s.joinBtnText}>{t.connect}</Text>
             </TouchableOpacity>
           </View>
@@ -153,12 +127,8 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       <TouchableOpacity style={s.psychCard} onPress={() => navigation.navigate('AboutPsych', { lang })}>
-        <View style={s.psychPhoto}>
-          <Image
-            source={require('../../assets/psychologist.png')}
-            style={s.psychImage}
-            resizeMode="cover"
-          />
+        <View style={s.psychPlaceholder}>
+          <Text style={s.psychPlaceholderText}>👩‍⚕️</Text>
         </View>
         <View style={s.psychInfo}>
           <Text style={s.psychName}>{t.psychName}</Text>
@@ -207,8 +177,8 @@ const s = StyleSheet.create({
   actionTitle: { fontSize: 13, fontWeight: '700', color: '#0F2447', marginBottom: 2 },
   actionSub: { fontSize: 10, color: '#6B7A99' },
   psychCard: { marginHorizontal: 24, marginTop: 16, backgroundColor: '#fff', borderRadius: 20, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, elevation: 2 },
-  psychPhoto: { width: 54, height: 54, borderRadius: 18, overflow: 'hidden' },
-  psychImage: { width: 54, height: 54 },
+  psychPlaceholder: { width: 54, height: 54, borderRadius: 18, backgroundColor: '#2E5DA6', justifyContent: 'center', alignItems: 'center' },
+  psychPlaceholderText: { fontSize: 28 },
   psychInfo: { flex: 1 },
   psychName: { fontSize: 13, fontWeight: '700', color: '#0F2447', marginBottom: 2 },
   psychSpec: { fontSize: 10, color: '#6B7A99', marginBottom: 4 },
