@@ -36,7 +36,7 @@ export default function AboutPsychScreen({ navigation, route }) {
       <View style={s.heroSection}>
         <View style={s.photoWrap}>
           <Image
-            source={require('../../assets/psychologist.jpg')}
+            source={require('../../assets/psychologist.png')}
             style={s.photo}
             resizeMode="cover"
           />

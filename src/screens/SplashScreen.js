@@ -97,7 +97,7 @@ export default function SplashScreen({ navigation }) {
               </Svg>
             </View>
             <Image
-              source={require('../../assets/splash.jpg')}
+              source={require('../../assets/psychologist.png')}
               style={s.photo}
               resizeMode="cover"
             />

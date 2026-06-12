@@ -155,7 +155,7 @@ export default function HomeScreen({ navigation }) {
       <TouchableOpacity style={s.psychCard} onPress={() => navigation.navigate('AboutPsych', { lang })}>
         <View style={s.psychPhoto}>
           <Image
-            source={require('../../assets/psychologist.jpg')}
+            source={require('../../assets/psychologist.png')}
             style={s.psychImage}
             resizeMode="cover"
           />
