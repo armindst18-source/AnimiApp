@@ -122,7 +122,7 @@ export default function DashboardScreen({ navigation }) {
     try {
       await supabase.auth.signOut();
       const { error } = await supabase.auth.signInWithPassword({
-        email: 'test@animi.app', password: 'test123456',
+        email: 'test@animinava.app', password: 'test123456',
       });
       if (error) throw error;
     } catch (e) { Alert.alert('Ошибка', e.message); }

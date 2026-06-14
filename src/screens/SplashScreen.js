@@ -5,8 +5,9 @@ import {
 } from 'react-native';
 import Svg, { Line, Rect, Polygon, Circle } from 'react-native-svg';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const FRAME = width * 0.78;
+const FRAME_H = FRAME * 0.85;
 
 export default function SplashScreen({ navigation }) {
   const [stage, setStage] = useState('studio');
@@ -37,7 +38,7 @@ export default function SplashScreen({ navigation }) {
     Animated.parallel([
       Animated.timing(photoOpacity,  { toValue: 1, duration: 800, useNativeDriver: true }),
       Animated.timing(photoScale,    { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(nameOpacity,   { toValue: 1, duration: 700, delay: 600, useNativeDriver: true }),
+      Animated.timing(nameOpacity,   { toValue: 1, duration: 700, delay: 600,  useNativeDriver: true }),
       Animated.timing(bioOpacity,    { toValue: 1, duration: 700, delay: 1000, useNativeDriver: true }),
       Animated.timing(animiOpacity,  { toValue: 1, duration: 700, delay: 1600, useNativeDriver: true }),
     ]).start();
@@ -69,39 +70,44 @@ export default function SplashScreen({ navigation }) {
       {stage === 'photo' && (
         <Animated.View style={[s.photoWrap, { opacity: photoOpacity }]}>
 
-          <Animated.View style={[s.frameContainer, { transform: [{ scale: photoScale }] }]}>
-            <View style={s.svgOuter}>
-              <Svg width={FRAME + 40} height={FRAME + 40}>
+          <Animated.View style={[s.outerFrame, { transform: [{ scale: photoScale }] }]}>
+
+            <View style={s.photoContainer}>
+              <Image
+                source={require('../../assets/psychologist.png')}
+                style={s.photo}
+                resizeMode="cover"
+              />
+              <View style={s.photoGrad} />
+            </View>
+
+            <View style={s.svgLayer} pointerEvents="none">
+              <Svg width={FRAME + 40} height={FRAME_H + 40}>
                 <Line x1="0" y1="20" x2="60" y2="20" stroke="#C9A84C" strokeWidth="1.5" />
                 <Line x1="20" y1="0" x2="20" y2="60" stroke="#C9A84C" strokeWidth="1.5" />
                 <Line x1={FRAME-20} y1="0" x2={FRAME-20} y2="60" stroke="#C9A84C" strokeWidth="1.5" />
                 <Line x1={FRAME-60} y1="20" x2={FRAME+40} y2="20" stroke="#C9A84C" strokeWidth="1.5" />
-                <Line x1="0" y1={FRAME-20} x2="60" y2={FRAME-20} stroke="#C9A84C" strokeWidth="1.5" />
-                <Line x1="20" y1={FRAME-60} x2="20" y2={FRAME+40} stroke="#C9A84C" strokeWidth="1.5" />
-                <Line x1={FRAME-20} y1={FRAME-60} x2={FRAME-20} y2={FRAME+40} stroke="#C9A84C" strokeWidth="1.5" />
-                <Line x1={FRAME-60} y1={FRAME-20} x2={FRAME+40} y2={FRAME-20} stroke="#C9A84C" strokeWidth="1.5" />
+                <Line x1="0" y1={FRAME_H-20} x2="60" y2={FRAME_H-20} stroke="#C9A84C" strokeWidth="1.5" />
+                <Line x1="20" y1={FRAME_H-60} x2="20" y2={FRAME_H+40} stroke="#C9A84C" strokeWidth="1.5" />
+                <Line x1={FRAME-20} y1={FRAME_H-60} x2={FRAME-20} y2={FRAME_H+40} stroke="#C9A84C" strokeWidth="1.5" />
+                <Line x1={FRAME-60} y1={FRAME_H-20} x2={FRAME+40} y2={FRAME_H-20} stroke="#C9A84C" strokeWidth="1.5" />
                 <Polygon points="20,8 28,20 20,32 12,20" fill="none" stroke="#C9A84C" strokeWidth="1" />
                 <Polygon points={`${FRAME},8 ${FRAME+8},20 ${FRAME},32 ${FRAME-8},20`} fill="none" stroke="#C9A84C" strokeWidth="1" />
-                <Polygon points={`20,${FRAME-12} 28,${FRAME} 20,${FRAME+12} 12,${FRAME}`} fill="none" stroke="#C9A84C" strokeWidth="1" />
-                <Polygon points={`${FRAME},${FRAME-12} ${FRAME+8},${FRAME} ${FRAME},${FRAME+12} ${FRAME-8},${FRAME}`} fill="none" stroke="#C9A84C" strokeWidth="1" />
+                <Polygon points={`20,${FRAME_H-12} 28,${FRAME_H} 20,${FRAME_H+12} 12,${FRAME_H}`} fill="none" stroke="#C9A84C" strokeWidth="1" />
+                <Polygon points={`${FRAME},${FRAME_H-12} ${FRAME+8},${FRAME_H} ${FRAME},${FRAME_H+12} ${FRAME-8},${FRAME_H}`} fill="none" stroke="#C9A84C" strokeWidth="1" />
                 <Line x1={FRAME/2-20} y1="20" x2={FRAME/2+20} y2="20" stroke="#2E5DA6" strokeWidth="1" />
-                <Line x1={FRAME/2-20} y1={FRAME} x2={FRAME/2+20} y2={FRAME} stroke="#2E5DA6" strokeWidth="1" />
-                <Line x1="20" y1={FRAME/2-20} x2="20" y2={FRAME/2+20} stroke="#2E5DA6" strokeWidth="1" />
-                <Line x1={FRAME} y1={FRAME/2-20} x2={FRAME} y2={FRAME/2+20} stroke="#2E5DA6" strokeWidth="1" />
+                <Line x1={FRAME/2-20} y1={FRAME_H} x2={FRAME/2+20} y2={FRAME_H} stroke="#2E5DA6" strokeWidth="1" />
+                <Line x1="20" y1={FRAME_H/2-20} x2="20" y2={FRAME_H/2+20} stroke="#2E5DA6" strokeWidth="1" />
+                <Line x1={FRAME} y1={FRAME_H/2-20} x2={FRAME} y2={FRAME_H/2+20} stroke="#2E5DA6" strokeWidth="1" />
                 <Circle cx="20" cy="20" r="3" fill="#C9A84C" />
                 <Circle cx={FRAME} cy="20" r="3" fill="#C9A84C" />
-                <Circle cx="20" cy={FRAME} r="3" fill="#C9A84C" />
-                <Circle cx={FRAME} cy={FRAME} r="3" fill="#C9A84C" />
-                <Rect x="20" y="20" width={FRAME-20} height={FRAME-20} fill="none" stroke="rgba(201,168,76,0.35)" strokeWidth="1" />
-                <Rect x="26" y="26" width={FRAME-32} height={FRAME-32} fill="none" stroke="rgba(46,93,166,0.3)" strokeWidth="0.5" />
+                <Circle cx="20" cy={FRAME_H} r="3" fill="#C9A84C" />
+                <Circle cx={FRAME} cy={FRAME_H} r="3" fill="#C9A84C" />
+                <Rect x="20" y="20" width={FRAME-20} height={FRAME_H-20} fill="none" stroke="rgba(201,168,76,0.35)" strokeWidth="1" />
+                <Rect x="26" y="26" width={FRAME-32} height={FRAME_H-32} fill="none" stroke="rgba(46,93,166,0.3)" strokeWidth="0.5" />
               </Svg>
             </View>
-            <Image
-              source={require('../../assets/psychologist.png')}
-              style={s.photo}
-              resizeMode="cover"
-            />
-            <View style={s.photoGrad} />
+
           </Animated.View>
 
           <Animated.View style={[s.nameWrap, { opacity: nameOpacity }]}>
@@ -131,7 +137,12 @@ export default function SplashScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F2447', justifyContent: 'center', alignItems: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: '#0F2447',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
   studioWrap: { alignItems: 'center' },
   studioName: { fontSize: 52, fontWeight: '900', color: '#fff', letterSpacing: 2 },
@@ -142,10 +153,41 @@ const s = StyleSheet.create({
   studioTagline: { color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 2 },
 
   photoWrap: { alignItems: 'center', paddingHorizontal: 16, width: '100%' },
-  frameContainer: { width: FRAME, height: FRAME * 0.85, borderRadius: 8, overflow: 'hidden', position: 'relative', marginBottom: 16 },
-  svgOuter: { position: 'absolute', top: -20, left: -20, zIndex: 10, pointerEvents: 'none' },
-  photo: { width: FRAME, height: FRAME * 0.85 },
-  photoGrad: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 100, backgroundColor: 'rgba(15,36,71,0.5)' },
+
+  outerFrame: {
+    width: FRAME + 40,
+    height: FRAME_H + 40,
+    position: 'relative',
+    marginBottom: 16,
+  },
+
+  photoContainer: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    width: FRAME,
+    height: FRAME_H,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+
+  photo: { width: FRAME, height: FRAME_H },
+
+  photoGrad: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    backgroundColor: 'rgba(15,36,71,0.5)',
+  },
+
+  svgLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 10,
+  },
 
   nameWrap: { alignItems: 'center', marginBottom: 8 },
   psychName: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 8, textAlign: 'center' },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { supabase } from '../../services/supabase';
 import { TEXTS } from '../auth/WelcomeScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -127,9 +127,7 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       <TouchableOpacity style={s.psychCard} onPress={() => navigation.navigate('AboutPsych', { lang })}>
-        <View style={s.psychPlaceholder}>
-          <Text style={s.psychPlaceholderText}>👩‍⚕️</Text>
-        </View>
+        <Image source={require('../../../assets/psychologist.png')} style={s.psychPhoto} />
         <View style={s.psychInfo}>
           <Text style={s.psychName}>{t.psychName}</Text>
           <Text style={s.psychSpec}>{t.method}</Text>
@@ -177,8 +175,7 @@ const s = StyleSheet.create({
   actionTitle: { fontSize: 13, fontWeight: '700', color: '#0F2447', marginBottom: 2 },
   actionSub: { fontSize: 10, color: '#6B7A99' },
   psychCard: { marginHorizontal: 24, marginTop: 16, backgroundColor: '#fff', borderRadius: 20, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, elevation: 2 },
-  psychPlaceholder: { width: 54, height: 54, borderRadius: 18, backgroundColor: '#2E5DA6', justifyContent: 'center', alignItems: 'center' },
-  psychPlaceholderText: { fontSize: 28 },
+  psychPhoto: { width: 54, height: 54, borderRadius: 18 },
   psychInfo: { flex: 1 },
   psychName: { fontSize: 13, fontWeight: '700', color: '#0F2447', marginBottom: 2 },
   psychSpec: { fontSize: 10, color: '#6B7A99', marginBottom: 4 },

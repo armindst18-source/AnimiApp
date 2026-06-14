@@ -72,7 +72,7 @@ export default function PhoneScreen({ navigation, route }) {
 
           <TouchableOpacity
             style={s.testBtn}
-            onPress={() => handleTestLogin('test@animi.app', 'test123456', setTestClientLoading)}
+            onPress={() => handleTestLogin('test@animinava.app', 'test123456', setTestClientLoading)}
             disabled={testClientLoading}
           >
             {testClientLoading
@@ -82,7 +82,7 @@ export default function PhoneScreen({ navigation, route }) {
 
           <TouchableOpacity
             style={[s.testBtn, s.testBtnPsych]}
-            onPress={() => handleTestLogin('psych@animi.app', 'psych123456', setTestPsychLoading)}
+            onPress={() => handleTestLogin('psych@animinava.app', 'psych123456', setTestPsychLoading)}
             disabled={testPsychLoading}
           >
             {testPsychLoading
