@@ -223,7 +223,11 @@ export default function WelcomeScreen({ navigation }) {
       </View>
       <View style={s.center}>
         <View style={s.photoFrame}>
-          <Image source={require('../../../assets/psychologist.png')} style={s.psychPhoto} />
+          <Image
+            source={require('../../../assets/psychologist.png')}
+            style={s.psychPhoto}
+            resizeMode="cover"
+          />
         </View>
         <Text style={s.psychName}>Маргарита Журавлёва</Text>
         <Text style={s.tagline}>{t.tagline}</Text>
@@ -256,7 +260,7 @@ const s = StyleSheet.create({
   langText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '600' },
   langTextActive: { color: '#0F2447' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  photoFrame: { width: 120, height: 120, borderRadius: 36, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(201,168,76,0.5)', elevation: 8 },
+  photoFrame: { width: 120, height: 120, borderRadius: 60, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(201,168,76,0.5)' },
   psychPhoto: { width: 120, height: 120 },
   psychName: { fontSize: 18, fontWeight: '700', color: '#C9A84C', marginBottom: 12 },
   tagline: { fontSize: 20, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 10 },

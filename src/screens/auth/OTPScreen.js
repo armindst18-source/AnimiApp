@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, Image, Alert,
 } from 'react-native';
 import { supabase } from '../../services/supabase';
 import { getUserRole } from '../../services/auth';
@@ -97,6 +97,9 @@ export default function OTPScreen({ route, navigation }) {
               onChangeText={setName}
               maxLength={30}
             />
+            <Text style={s.photoHint}>
+              {lang === 'ru' ? '📷 Фото профиля можно добавить позже в настройках' : '📷 Profile photo can be added later in settings'}
+            </Text>
             {error ? <Text style={s.error}>{error}</Text> : null}
             <TouchableOpacity style={s.btn} onPress={handleSaveName} disabled={loading}>
               {loading
@@ -118,6 +121,7 @@ const s = StyleSheet.create({
   input: { backgroundColor: '#fff', borderRadius: 16, padding: 16, fontSize: 16, color: '#1A3D7C', marginBottom: 12, elevation: 4 },
   inputCode: { backgroundColor: '#fff', borderRadius: 16, padding: 16, fontSize: 28, color: '#1A3D7C', marginBottom: 12, elevation: 4, textAlign: 'center', letterSpacing: 10 },
   error: { color: '#E07070', fontSize: 13, marginBottom: 8, textAlign: 'center' },
+  photoHint: { fontSize: 13, color: '#9BA8C0', textAlign: 'center', marginBottom: 16 },
   btn: { backgroundColor: '#1A3D7C', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8, elevation: 8 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

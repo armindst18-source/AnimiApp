@@ -30,15 +30,23 @@ const generateTimeSlots = () => {
 
 const TIME_SLOTS = generateTimeSlots();
 
-const getNext14Days = () => {
+const pad = (n) => String(n).padStart(2, '0');
+const formatDate = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+
+const getMonthDays = (year, month) => {
   const days = [];
-  for (let i = 0; i < 14; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    days.push(d);
-  }
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  let startDow = firstDay.getDay();
+  startDow = startDow === 0 ? 6 : startDow - 1;
+  for (let i = 0; i < startDow; i++) days.push(null);
+  for (let d = 1; d <= lastDay.getDate(); d++) days.push(d);
+  while (days.length % 7 !== 0) days.push(null);
   return days;
 };
+
+const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 
 export default function DashboardScreen({ navigation }) {
   const [tab, setTab]                     = useState('today');
@@ -50,10 +58,13 @@ export default function DashboardScreen({ navigation }) {
   const [saving, setSaving]               = useState(false);
   const [psychName, setPsychName]         = useState('');
   const [psychEmail, setPsychEmail]       = useState('');
-  const [switchingTest, setSwitchingTest] = useState(false);
-  const days = getNext14Days();
+  const today = new Date();
+  const [year, setYear]   = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
+  const [bookedDates, setBookedDates] = useState([]);
 
   useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadMonthData(); }, [year, month]);
 
   const loadData = async () => {
     try {
@@ -62,16 +73,13 @@ export default function DashboardScreen({ navigation }) {
       const { data: profile } = await supabase
         .from('users').select('name').eq('id', user.id).single();
       setPsychName(profile?.name || 'Психолог');
-      const today = new Date().toISOString().split('T')[0];
+      const todayStr = new Date().toISOString().split('T')[0];
       const { data: slots } = await supabase
-        .from('time_slots')
-        .select('id')
-        .eq('date', today);
+        .from('time_slots').select('id').eq('date', todayStr);
       if (slots && slots.length > 0) {
         const slotIds = slots.map(s => s.id);
         const { data } = await supabase
-          .from('bookings')
-          .select('*, time_slots(*), users(*)')
+          .from('bookings').select('*, time_slots(*), users(*)')
           .in('slot_id', slotIds);
         setTodayBookings(data || []);
       } else {
@@ -81,13 +89,38 @@ export default function DashboardScreen({ navigation }) {
     finally { setLoading(false); }
   };
 
-  const handleSelectDate = async (dateStr) => {
+  const loadMonthData = async () => {
+    const from = formatDate(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const to = formatDate(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate());
+    const { data } = await supabase
+      .from('time_slots').select('date')
+      .gte('date', from).lte('date', to);
+    const dates = [...new Set((data || []).map(d => d.date))];
+    setBookedDates(dates);
+  };
+
+  const prevMonth = () => {
+    if (month === 0) { setYear(y => y - 1); setMonth(11); }
+    else { setMonth(m => m - 1); }
+    setSelectedDate(null);
+    setSelectedTimes([]);
+  };
+
+  const nextMonth = () => {
+    if (month === 11) { setYear(y => y + 1); setMonth(0); }
+    else { setMonth(m => m + 1); }
+    setSelectedDate(null);
+    setSelectedTimes([]);
+  };
+
+  const handleSelectDate = async (day) => {
+    if (!day) return;
+    const dateStr = formatDate(year, month, day);
     setSelectedDate(dateStr);
     setSelectedTimes([]);
     const { data } = await supabase
-      .from('time_slots')
-      .select('start_time')
-      .eq('date', dateStr);
+      .from('time_slots').select('start_time').eq('date', dateStr);
     setExistingSlots((data || []).map(d => d.start_time));
   };
 
@@ -111,11 +144,8 @@ export default function DashboardScreen({ navigation }) {
           }
         } else {
           const { data: existing } = await supabase
-            .from('time_slots')
-            .select('id, is_booked')
-            .eq('date', selectedDate)
-            .eq('start_time', slot.start)
-            .single();
+            .from('time_slots').select('id, is_booked')
+            .eq('date', selectedDate).eq('start_time', slot.start).single();
           if (existing && !existing.is_booked) {
             await supabase.from('time_slots').delete().eq('id', existing.id);
           }
@@ -124,6 +154,7 @@ export default function DashboardScreen({ navigation }) {
       Alert.alert('✅ Сохранено!', `График на ${selectedDate} обновлён.`);
       setSelectedTimes([]);
       setSelectedDate(null);
+      loadMonthData();
     } catch (e) { Alert.alert('Ошибка', e.message); }
     finally { setSaving(false); }
   };
@@ -131,28 +162,16 @@ export default function DashboardScreen({ navigation }) {
   const handleLogout = () => {
     Alert.alert('Выйти?', 'Вы уверены?', [
       { text: 'Отмена', style: 'cancel' },
-      {
-        text: 'Выйти', style: 'destructive',
-        onPress: async () => { await supabase.auth.signOut(); },
-      },
+      { text: 'Выйти', style: 'destructive', onPress: async () => { await supabase.auth.signOut(); } },
     ]);
-  };
-
-  const handleSwitchToClient = async () => {
-    setSwitchingTest(true);
-    try {
-      await supabase.auth.signOut();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: 'test@animinava.app', password: 'test123456',
-      });
-      if (error) throw error;
-    } catch (e) { Alert.alert('Ошибка', e.message); }
-    finally { setSwitchingTest(false); }
   };
 
   if (loading) return (
     <View style={s.loader}><ActivityIndicator size="large" color="#C9A84C" /></View>
   );
+
+  const days = getMonthDays(year, month);
+  const todayStr = today.toISOString().split('T')[0];
 
   return (
     <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
@@ -161,38 +180,19 @@ export default function DashboardScreen({ navigation }) {
           <Text style={s.greeting}>Добро пожаловать,</Text>
           <Text style={s.title}>{psychName}</Text>
         </View>
-        <View style={s.headerBtns}>
-          <TouchableOpacity style={s.testBtn} onPress={handleSwitchToClient} disabled={switchingTest}>
-            {switchingTest
-              ? <ActivityIndicator color="#C9A84C" size="small" />
-              : <Text style={s.testBtnText}>👤</Text>}
-          </TouchableOpacity>
-        </View>
       </View>
 
       <View style={s.tabs}>
-        <TouchableOpacity
-          style={[s.tab, tab === 'today' && s.tabActive]}
-          onPress={() => setTab('today')}
-        >
+        <TouchableOpacity style={[s.tab, tab === 'today' && s.tabActive]} onPress={() => setTab('today')}>
           <Text style={[s.tabText, tab === 'today' && s.tabTextActive]}>📋 Сессии</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[s.tab, tab === 'schedule' && s.tabActive]}
-          onPress={() => setTab('schedule')}
-        >
+        <TouchableOpacity style={[s.tab, tab === 'schedule' && s.tabActive]} onPress={() => setTab('schedule')}>
           <Text style={[s.tabText, tab === 'schedule' && s.tabTextActive]}>📅 График</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[s.tab, tab === 'clients' && s.tabActive]}
-          onPress={() => navigation.navigate('Clients')}
-        >
+        <TouchableOpacity style={[s.tab, tab === 'clients' && s.tabActive]} onPress={() => navigation.navigate('Clients')}>
           <Text style={[s.tabText, tab === 'clients' && s.tabTextActive]}>👥 Клиенты</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[s.tab, tab === 'profile' && s.tabActive]}
-          onPress={() => setTab('profile')}
-        >
+        <TouchableOpacity style={[s.tab, tab === 'profile' && s.tabActive]} onPress={() => setTab('profile')}>
           <Text style={[s.tabText, tab === 'profile' && s.tabTextActive]}>👤 Профиль</Text>
         </TouchableOpacity>
       </View>
@@ -208,20 +208,15 @@ export default function DashboardScreen({ navigation }) {
             todayBookings.map(b => (
               <View key={b.id} style={s.sessionItem}>
                 <View style={s.sessionTimeWrap}>
-                  <Text style={s.sessionTimeText}>{b.time_slots?.start_time}</Text>
+                  <Text style={s.sessionTimeText}>{b.time_slots?.start_time?.slice(0,5)}</Text>
                   <Text style={s.sessionDur}>1.5 ч</Text>
                 </View>
                 <View style={s.sessionDiv} />
                 <View style={s.sessionClient}>
                   <Text style={s.sessionClientName}>{b.users?.name || 'Клиент'}</Text>
-                  <Text style={s.sessionStatus}>
-                    {b.status === 'confirmed' ? '✅ Подтверждено' : '⏳ Ожидает оплаты'}
-                  </Text>
+                  <Text style={s.sessionStatus}>{b.status === 'confirmed' ? '✅ Подтверждено' : '⏳ Ожидает оплаты'}</Text>
                 </View>
-                <TouchableOpacity
-                  style={s.joinBtn}
-                  onPress={() => navigation.navigate('PsychVideo', { bookingId: b.id })}
-                >
+                <TouchableOpacity style={s.joinBtn} onPress={() => navigation.navigate('PsychVideo', { bookingId: b.id })}>
                   <Text style={s.joinBtnText}>▶</Text>
                 </TouchableOpacity>
               </View>
@@ -232,72 +227,73 @@ export default function DashboardScreen({ navigation }) {
 
       {tab === 'schedule' && (
         <View style={s.section}>
-          <Text style={s.scheduleLabel}>Выберите дату:</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-            {days.map((d, i) => {
-              const ds         = d.toISOString().split('T')[0];
-              const isSelected = selectedDate === ds;
-              return (
-                <TouchableOpacity
-                  key={i}
-                  style={[s.dayBtn, isSelected && s.dayBtnActive]}
-                  onPress={() => handleSelectDate(ds)}
-                >
-                  <Text style={[s.dayNum, isSelected && s.dayNumActive]}>{d.getDate()}</Text>
-                  <Text style={[s.dayName, isSelected && s.dayNameActive]}>
-                    {d.toLocaleDateString('ru-RU', { weekday: 'short' })}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+          <View style={s.calendarCard}>
+            <View style={s.monthNav}>
+              <TouchableOpacity style={s.navBtn} onPress={prevMonth}>
+                <Text style={s.navBtnText}>‹</Text>
+              </TouchableOpacity>
+              <Text style={s.monthTitle}>{MONTHS_RU[month]} {year}</Text>
+              <TouchableOpacity style={s.navBtn} onPress={nextMonth}>
+                <Text style={s.navBtnText}>›</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={s.dayNamesRow}>
+              {DAYS_RU.map((d, i) => (
+                <Text key={i} style={[s.dayNameText, (i === 5 || i === 6) && s.weekend]}>{d}</Text>
+              ))}
+            </View>
+            <View style={s.daysGrid}>
+              {days.map((day, i) => {
+                if (!day) return <View key={i} style={s.dayCell} />;
+                const dateStr = formatDate(year, month, day);
+                const isSelected = selectedDate === dateStr;
+                const hasSlots = bookedDates.includes(dateStr);
+                const isToday = dateStr === todayStr;
+                const dow = i % 7;
+                const isWeekend = dow === 5 || dow === 6;
+                return (
+                  <TouchableOpacity key={i} style={s.dayCell} onPress={() => handleSelectDate(day)}>
+                    <View style={[s.dayInner, isToday && s.dayInnerToday, isSelected && s.dayInnerSelected]}>
+                      <Text style={[
+                        s.dayCellText,
+                        isToday && s.dayCellTextToday,
+                        isSelected && s.dayCellTextSelected,
+                        isWeekend && !isSelected && s.dayCellTextWeekend,
+                      ]}>{day}</Text>
+                    </View>
+                    {hasSlots && <View style={[s.dot, isSelected && s.dotSelected]} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
 
           {selectedDate && (
             <>
-              <Text style={s.scheduleLabel}>
-                Выберите рабочие часы (10:30 — 19:30, по 1.5 ч):
-              </Text>
+              <Text style={s.scheduleLabel}>Выберите рабочие часы (10:30 — 19:30, по 1.5 ч):</Text>
               <View style={s.timesGrid}>
                 {TIME_SLOTS.map(slot => {
-                  const isActive   = selectedTimes.includes(slot.start);
+                  const isActive = selectedTimes.includes(slot.start);
                   const isExisting = existingSlots.includes(slot.start);
                   return (
                     <TouchableOpacity
                       key={slot.start}
-                      style={[
-                        s.timeBtn,
-                        isActive && s.timeBtnActive,
-                        isExisting && !isActive && s.timeBtnExisting,
-                      ]}
+                      style={[s.timeBtn, isActive && s.timeBtnActive, isExisting && !isActive && s.timeBtnExisting]}
                       onPress={() => toggleTime(slot.start)}
                     >
-                      <Text style={[s.timeTxt, (isActive || isExisting) && s.timeTxtActive]}>
-                        {slot.start}
-                      </Text>
-                      <Text style={[s.timeEnd, (isActive || isExisting) && s.timeTxtActive]}>
-                        — {slot.end}
-                      </Text>
-                      {isExisting && (
-                        <Text style={s.existingTag}>✓</Text>
-                      )}
+                      <Text style={[s.timeTxt, (isActive || isExisting) && s.timeTxtActive]}>{slot.start}</Text>
+                      <Text style={[s.timeEnd, (isActive || isExisting) && s.timeTxtActive]}>— {slot.end}</Text>
+                      {isExisting && <Text style={s.existingTag}>✓</Text>}
                     </TouchableOpacity>
                   );
                 })}
               </View>
               <View style={s.legend}>
-                <View style={s.legendItem}>
-                  <View style={[s.legendDot, { backgroundColor: '#C9A84C' }]} />
-                  <Text style={s.legendText}>Выбрано</Text>
-                </View>
-                <View style={s.legendItem}>
-                  <View style={[s.legendDot, { backgroundColor: '#22c55e' }]} />
-                  <Text style={s.legendText}>Уже открыто</Text>
-                </View>
+                <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#C9A84C' }]} /><Text style={s.legendText}>Выбрано</Text></View>
+                <View style={s.legendItem}><View style={[s.legendDot, { backgroundColor: '#22c55e' }]} /><Text style={s.legendText}>Уже открыто</Text></View>
               </View>
               <TouchableOpacity style={s.saveBtn} onPress={handleSave} disabled={saving}>
-                {saving
-                  ? <ActivityIndicator color="#0F2447" />
-                  : <Text style={s.saveBtnText}>Сохранить график</Text>}
+                {saving ? <ActivityIndicator color="#0F2447" /> : <Text style={s.saveBtnText}>Сохранить график</Text>}
               </TouchableOpacity>
             </>
           )}
@@ -330,9 +326,6 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, paddingTop: 60 },
   greeting: { fontSize: 11, color: 'rgba(255,255,255,0.4)' },
   title: { fontSize: 22, fontWeight: '700', color: '#fff' },
-  headerBtns: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  testBtn: { backgroundColor: 'rgba(201,168,76,0.12)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.25)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
-  testBtnText: { fontSize: 16 },
   tabs: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 14, padding: 4 },
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 12 },
   tabActive: { backgroundColor: '#C9A84C' },
@@ -352,13 +345,26 @@ const s = StyleSheet.create({
   sessionStatus: { fontSize: 11, color: 'rgba(255,255,255,0.5)' },
   joinBtn: { width: 36, height: 36, backgroundColor: '#C9A84C', borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   joinBtnText: { color: '#0F2447', fontWeight: '700' },
+  calendarCard: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', marginBottom: 16 },
+  monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+  navBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.07)', justifyContent: 'center', alignItems: 'center' },
+  navBtnText: { fontSize: 20, color: '#C9A84C', fontWeight: '700' },
+  monthTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  dayNamesRow: { flexDirection: 'row', marginBottom: 8 },
+  dayNameText: { flex: 1, textAlign: 'center', fontSize: 11, color: 'rgba(255,255,255,0.35)', fontWeight: '600' },
+  weekend: { color: '#C9A84C' },
+  daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center' },
+  dayInner: { width: 30, height: 30, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  dayInnerToday: { backgroundColor: 'rgba(201,168,76,0.2)' },
+  dayInnerSelected: { backgroundColor: '#C9A84C' },
+  dayCellText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)' },
+  dayCellTextToday: { color: '#C9A84C', fontWeight: '800' },
+  dayCellTextSelected: { color: '#0F2447' },
+  dayCellTextWeekend: { color: '#C9A84C' },
+  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(201,168,76,0.6)', marginTop: 1 },
+  dotSelected: { backgroundColor: '#0F2447' },
   scheduleLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 12, letterSpacing: 0.3 },
-  dayBtn: { alignItems: 'center', marginLeft: 8, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 14, padding: 12, minWidth: 54 },
-  dayBtnActive: { backgroundColor: '#C9A84C' },
-  dayNum: { fontSize: 18, fontWeight: '700', color: '#fff' },
-  dayNumActive: { color: '#0F2447' },
-  dayName: { fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
-  dayNameActive: { color: '#0F2447' },
   timesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   timeBtn: { backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 12, padding: 12, alignItems: 'center', minWidth: '47%', position: 'relative' },
   timeBtnActive: { backgroundColor: '#C9A84C' },

@@ -24,6 +24,12 @@ const MONTHS_EN = ['January','February','March','April','May','June','July','Aug
 const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const DAYS_EN = ['Mo','Tu','We','Th','Fr','Sa','Su'];
 
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  return `${parts[0]}:${parts[1]}`;
+};
+
 export default function BookingScreen({ navigation }) {
   const [lang, setLang] = useState('ru');
   const today = new Date();
@@ -126,8 +132,8 @@ export default function BookingScreen({ navigation }) {
       if (slotErr) throw slotErr;
       navigation.replace('BookingSuccess', {
         date: selectedDate,
-        startTime: selectedSlot.start_time,
-        endTime: selectedSlot.end_time,
+        startTime: formatTime(selectedSlot.start_time),
+        endTime: formatTime(selectedSlot.end_time),
         lang,
       });
     } catch (e) {
@@ -177,16 +183,18 @@ export default function BookingScreen({ navigation }) {
             return (
               <TouchableOpacity
                 key={i}
-                style={[s.dayCell, isSelected && s.dayCellSelected, isPast && s.dayCellPast]}
+                style={s.dayCell}
                 onPress={() => handleDayPress(day)}
                 disabled={isPast}
               >
-                <Text style={[
-                  s.dayCellText,
-                  isSelected && s.dayCellTextSelected,
-                  isPast && s.dayCellTextPast,
-                  isWeekend && !isSelected && !isPast && s.dayCellTextWeekend,
-                ]}>{day}</Text>
+                <View style={[s.dayInner, isSelected && s.dayInnerSelected, isPast && s.dayInnerPast]}>
+                  <Text style={[
+                    s.dayCellText,
+                    isSelected && s.dayCellTextSelected,
+                    isPast && s.dayCellTextPast,
+                    isWeekend && !isSelected && !isPast && s.dayCellTextWeekend,
+                  ]}>{day}</Text>
+                </View>
                 {hasSlots && !isPast && (
                   <View style={[s.dot, isSelected && s.dotSelected]} />
                 )}
@@ -214,10 +222,10 @@ export default function BookingScreen({ navigation }) {
                   onPress={() => setSelectedSlot(slot)}
                 >
                   <Text style={[s.slotTime, selectedSlot?.id === slot.id && s.slotTimeActive]}>
-                    {slot.start_time}
+                    {formatTime(slot.start_time)}
                   </Text>
                   <Text style={[s.slotEnd, selectedSlot?.id === slot.id && s.slotTimeActive]}>
-                    {lang === 'ru' ? 'до' : 'to'} {slot.end_time}
+                    {lang === 'ru' ? 'до' : 'to'} {formatTime(slot.end_time)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -230,7 +238,7 @@ export default function BookingScreen({ navigation }) {
         <View style={s.confirmSection}>
           <View style={s.confirmCard}>
             <Text style={s.confirmDate}>{selectedDate}</Text>
-            <Text style={s.confirmTime}>{selectedSlot.start_time} — {selectedSlot.end_time} · 1.5 {lang === 'ru' ? 'ч' : 'h'}</Text>
+            <Text style={s.confirmTime}>{formatTime(selectedSlot.start_time)} — {formatTime(selectedSlot.end_time)} · 1.5 {lang === 'ru' ? 'ч' : 'h'}</Text>
             <Text style={s.confirmPrice}>6 000 ₽</Text>
           </View>
           <TouchableOpacity style={s.bookBtn} onPress={handleBook} disabled={booking}>
@@ -257,15 +265,16 @@ const s = StyleSheet.create({
   dayNameText: { flex: 1, textAlign: 'center', fontSize: 11, color: '#9BA8C0', fontWeight: '600' },
   weekend: { color: '#1A3D7C' },
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 10 },
-  dayCellSelected: { backgroundColor: '#1A3D7C' },
-  dayCellPast: { opacity: 0.3 },
+  dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center' },
+  dayInner: { width: 30, height: 30, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  dayInnerSelected: { backgroundColor: '#1A3D7C' },
+  dayInnerPast: { opacity: 0.3 },
   dayCellText: { fontSize: 13, fontWeight: '600', color: '#0F2447' },
   dayCellTextSelected: { color: '#fff' },
   dayCellTextPast: { color: '#9BA8C0' },
   dayCellTextWeekend: { color: '#1A3D7C' },
-  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#C9A84C', marginTop: 2 },
-  dotSelected: { backgroundColor: '#fff' },
+  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#C9A84C', marginTop: 1 },
+  dotSelected: { backgroundColor: '#C9A84C' },
   slotsSection: { paddingHorizontal: 20 },
   sectionLabel: { fontSize: 10, letterSpacing: 2, color: '#6B7A99', fontWeight: '700', marginBottom: 12 },
   noSlotsWrap: { alignItems: 'center', paddingVertical: 32 },
