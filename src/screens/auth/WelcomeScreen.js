@@ -211,44 +211,40 @@ export default function WelcomeScreen({ navigation }) {
   };
 
   return (
-    <View style={s.container}>
-      <StatusBar barStyle="light-content" />
-      <View style={s.langRow}>
-        <TouchableOpacity style={[s.langBtn, lang === 'ru' && s.langActive]} onPress={() => setLang('ru')}>
-          <Text style={[s.langText, lang === 'ru' && s.langTextActive]}>🇷🇺 RU</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.langBtn, lang === 'en' && s.langActive]} onPress={() => setLang('en')}>
-          <Text style={[s.langText, lang === 'en' && s.langTextActive]}>🇬🇧 EN</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={s.center}>
-        <View style={s.photoFrame}>
-          <Image
-            source={require('../../../assets/psychologist.png')}
-            style={s.psychPhoto}
-            resizeMode="cover"
-          />
-        </View>
-        <Text style={s.psychName}>Маргарита Журавлёва</Text>
-        <Text style={s.tagline}>{t.tagline}</Text>
-        <Text style={s.desc}>{t.desc}</Text>
-      </View>
-      <View style={s.features}>
+    
+      
+      
+         setLang('ru')}>
+          🇷🇺 RU
+        
+         setLang('en')}>
+          🇬🇧 EN
+        
+      
+      
+        
+          
+        
+        Маргарита Журавлёва
+        {t.tagline}
+        {t.desc}
+      
+      
         {[
           { icon: '⏱', text: t.session },
           { icon: '🔒', text: t.private },
           { icon: '🌐', text: t.online },
         ].map((f, i) => (
-          <View key={i} style={s.featureItem}>
-            <Text style={s.featureIcon}>{f.icon}</Text>
-            <Text style={s.featureText}>{f.text}</Text>
-          </View>
+          
+            {f.icon}
+            {f.text}
+          
         ))}
-      </View>
-      <TouchableOpacity style={s.btn} onPress={handleStart}>
-        <Text style={s.btnText}>{t.enter}</Text>
-      </TouchableOpacity>
-    </View>
+      
+      
+        {t.enter}
+      
+    
   );
 }
 
@@ -260,8 +256,8 @@ const s = StyleSheet.create({
   langText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '600' },
   langTextActive: { color: '#0F2447' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  photoFrame: { width: 120, height: 120, borderRadius: 60, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(201,168,76,0.5)' },
-  psychPhoto: { width: 120, height: 120 },
+  photoFrame: { width: 130, height: 130, borderRadius: 65, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(201,168,76,0.5)' },
+  psychPhoto: { width: 130, height: 130 },
   psychName: { fontSize: 18, fontWeight: '700', color: '#C9A84C', marginBottom: 12 },
   tagline: { fontSize: 20, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 10 },
   desc: { fontSize: 13, color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 20 },

@@ -4,6 +4,12 @@ import { supabase } from '../../services/supabase';
 import { TEXTS } from '../auth/WelcomeScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const formatTime = (timeStr) => {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  return `${parts[0]}:${parts[1]}`;
+};
+
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
   const [email, setEmail]     = useState('');
@@ -20,9 +26,7 @@ export default function ProfileScreen({ navigation }) {
     setEmail(user?.email || '');
     const { data } = await supabase.from('users').select('*').eq('id', user.id).single();
     setProfile(data);
-    const { data: slots } = await supabase
-      .from('time_slots')
-      .select('id');
+    const { data: slots } = await supabase.from('time_slots').select('id');
     if (slots && slots.length > 0) {
       const slotIds = slots.map(s => s.id);
       const { data: bk } = await supabase
@@ -48,52 +52,54 @@ export default function ProfileScreen({ navigation }) {
     ]);
   };
 
-  if (loading) return <View style={s.loader}><ActivityIndicator size="large" color="#1A3D7C" /></View>;
+  if (loading) return ;
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
-      <View style={s.header}>
-        <TouchableOpacity style={s.back} onPress={() => navigation.goBack()}>
-          <Text style={s.backTxt}>← {lang === 'ru' ? 'Назад' : 'Back'}</Text>
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>{t.myProfile}</Text>
-        <View style={{ width: 60 }} />
-      </View>
+    
+      
+         navigation.goBack()}>
+          ← {lang === 'ru' ? 'Назад' : 'Back'}
+        
+        {t.myProfile}
+        
+      
 
-      <View style={s.avatarWrap}>
-        <View style={s.avatar}><Text style={s.avatarTxt}>{initial}</Text></View>
-        <Text style={s.profileName}>{profile?.name || '—'}</Text>
-        <Text style={s.profileEmail}>{email}</Text>
-      </View>
+      
+        {initial}
+        {profile?.name || '—'}
+        {email}
+      
 
-      <View style={s.card}>
-        <View style={s.row}><Text style={s.lbl}>{t.name}</Text><Text style={s.val}>{profile?.name || '—'}</Text></View>
-        <View style={s.sep} />
-        <View style={s.row}><Text style={s.lbl}>Email</Text><Text style={s.val}>{email}</Text></View>
-        <View style={s.sep} />
-        <View style={s.row}><Text style={s.lbl}>{t.phone}</Text><Text style={s.val}>{profile?.phone || '—'}</Text></View>
-      </View>
+      
+        {t.name}{profile?.name || '—'}
+        
+        Email{email}
+        
+        {t.phone}{profile?.phone || '—'}
+      
 
       {history.length > 0 && (
-        <View style={s.historySection}>
-          <Text style={s.historyTitle}>{t.history}</Text>
+        
+          {t.history}
           {history.map(b => (
-            <View key={b.id} style={s.historyItem}>
-              <Text style={s.historyDate}>{b.time_slots?.date}</Text>
-              <Text style={s.historyTime}>{b.time_slots?.start_time} — {b.time_slots?.end_time}</Text>
-              <View style={[s.historyBadge, b.status === 'confirmed' && s.historyBadgeOk]}>
-                <Text style={s.historyBadgeText}>{b.status === 'confirmed' ? t.paid : t.pending}</Text>
-              </View>
-            </View>
+            
+              {b.time_slots?.date}
+              
+                {formatTime(b.time_slots?.start_time)} — {formatTime(b.time_slots?.end_time)}
+              
+              
+                {b.status === 'confirmed' ? t.paid : t.pending}
+              
+            
           ))}
-        </View>
+        
       )}
 
-      <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
-        <Text style={s.logoutTxt}>🚪 {t.logout}</Text>
-      </TouchableOpacity>
-      <View style={{ height: 40 }} />
-    </ScrollView>
+      
+        🚪 {t.logout}
+      
+      
+    
   );
 }
 

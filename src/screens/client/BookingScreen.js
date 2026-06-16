@@ -145,148 +145,140 @@ export default function BookingScreen({ navigation }) {
   const todayStr = today.toISOString().split('T')[0];
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={s.back}>←</Text>
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>{t.bookNow}</Text>
-        <View style={{ width: 32 }} />
-      </View>
+    
+      
+         navigation.goBack()}>
+          ←
+        
+        {t.bookNow}
+        
+      
 
-      <View style={s.calendarCard}>
-        <View style={s.monthNav}>
-          <TouchableOpacity style={s.navBtn} onPress={prevMonth}>
-            <Text style={s.navBtnText}>‹</Text>
-          </TouchableOpacity>
-          <Text style={s.monthTitle}>{MONTHS[month]} {year}</Text>
-          <TouchableOpacity style={s.navBtn} onPress={nextMonth}>
-            <Text style={s.navBtnText}>›</Text>
-          </TouchableOpacity>
-        </View>
+      
+        
+          
+            ‹
+          
+          {MONTHS[month]} {year}
+          
+            ›
+          
+        
 
-        <View style={s.dayNamesRow}>
+        
           {DAYS.map((d, i) => (
-            <Text key={i} style={[s.dayNameText, (i === 5 || i === 6) && s.weekend]}>{d}</Text>
+            {d}
           ))}
-        </View>
+        
 
-        <View style={s.daysGrid}>
+        
           {days.map((day, i) => {
-            if (!day) return <View key={i} style={s.dayCell} />;
+            if (!day) return ;
             const dateStr = formatDate(year, month, day);
             const isSelected = selectedDate === dateStr;
             const hasSlots = availableDates.includes(dateStr);
             const isPast = dateStr < todayStr;
+            const isToday = dateStr === todayStr;
             const dow = i % 7;
             const isWeekend = dow === 5 || dow === 6;
             return (
-              <TouchableOpacity
-                key={i}
-                style={s.dayCell}
-                onPress={() => handleDayPress(day)}
+               handleDayPress(day)}
                 disabled={isPast}
               >
-                <View style={[s.dayInner, isSelected && s.dayInnerSelected, isPast && s.dayInnerPast]}>
-                  <Text style={[
-                    s.dayCellText,
-                    isSelected && s.dayCellTextSelected,
-                    isPast && s.dayCellTextPast,
-                    isWeekend && !isSelected && !isPast && s.dayCellTextWeekend,
-                  ]}>{day}</Text>
-                </View>
+                
+                  {day}
+                
                 {hasSlots && !isPast && (
-                  <View style={[s.dot, isSelected && s.dotSelected]} />
+                  
                 )}
-              </TouchableOpacity>
+              
             );
           })}
-        </View>
-      </View>
+        
+      
 
       {selectedDate && (
-        <View style={s.slotsSection}>
-          <Text style={s.sectionLabel}>{t.availableTime}</Text>
+        
+          {t.availableTime}
           {loadingSlots ? (
-            <ActivityIndicator size="large" color="#1A3D7C" style={{ marginTop: 24 }} />
+            
           ) : slots.length === 0 ? (
-            <View style={s.noSlotsWrap}>
-              <Text style={s.noSlots}>{t.noSlots}</Text>
-            </View>
+            
+              {t.noSlots}
+            
           ) : (
-            <View style={s.slotsGrid}>
+            
               {slots.map(slot => (
-                <TouchableOpacity
-                  key={slot.id}
-                  style={[s.slotBtn, selectedSlot?.id === slot.id && s.slotBtnActive]}
-                  onPress={() => setSelectedSlot(slot)}
+                 setSelectedSlot(slot)}
                 >
-                  <Text style={[s.slotTime, selectedSlot?.id === slot.id && s.slotTimeActive]}>
+                  
                     {formatTime(slot.start_time)}
-                  </Text>
-                  <Text style={[s.slotEnd, selectedSlot?.id === slot.id && s.slotTimeActive]}>
+                  
+                  
                     {lang === 'ru' ? 'до' : 'to'} {formatTime(slot.end_time)}
-                  </Text>
-                </TouchableOpacity>
+                  
+                
               ))}
-            </View>
+            
           )}
-        </View>
+        
       )}
 
       {selectedSlot && (
-        <View style={s.confirmSection}>
-          <View style={s.confirmCard}>
-            <Text style={s.confirmDate}>{selectedDate}</Text>
-            <Text style={s.confirmTime}>{formatTime(selectedSlot.start_time)} — {formatTime(selectedSlot.end_time)} · 1.5 {lang === 'ru' ? 'ч' : 'h'}</Text>
-            <Text style={s.confirmPrice}>6 000 ₽</Text>
-          </View>
-          <TouchableOpacity style={s.bookBtn} onPress={handleBook} disabled={booking}>
-            {booking ? <ActivityIndicator color="#0F2447" /> : <Text style={s.bookBtnText}>{t.book}</Text>}
-          </TouchableOpacity>
-        </View>
+        
+          
+            {selectedDate}
+            {formatTime(selectedSlot.start_time)} — {formatTime(selectedSlot.end_time)} · 1.5 {lang === 'ru' ? 'ч' : 'h'}
+            6 000 ₽
+          
+          
+            {booking ?  : {t.book}}
+          
+        
       )}
-      <View style={{ height: 80 }} />
-    </ScrollView>
+      
+    
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0F4FF' },
+  container: { flex: 1, backgroundColor: '#0F2447' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 56, paddingBottom: 8 },
-  back: { color: '#1A3D7C', fontSize: 22, fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#0F2447' },
-  calendarCard: { margin: 16, backgroundColor: '#fff', borderRadius: 20, padding: 16, elevation: 3 },
+  back: { color: '#C9A84C', fontSize: 22, fontWeight: '700' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  calendarCard: { margin: 16, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   monthNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  navBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: '#F0F4FF', justifyContent: 'center', alignItems: 'center' },
-  navBtnText: { fontSize: 20, color: '#1A3D7C', fontWeight: '700' },
-  monthTitle: { fontSize: 16, fontWeight: '700', color: '#0F2447' },
+  navBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.07)', justifyContent: 'center', alignItems: 'center' },
+  navBtnText: { fontSize: 20, color: '#C9A84C', fontWeight: '700' },
+  monthTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
   dayNamesRow: { flexDirection: 'row', marginBottom: 8 },
-  dayNameText: { flex: 1, textAlign: 'center', fontSize: 11, color: '#9BA8C0', fontWeight: '600' },
-  weekend: { color: '#1A3D7C' },
+  dayNameText: { flex: 1, textAlign: 'center', fontSize: 11, color: 'rgba(255,255,255,0.35)', fontWeight: '600' },
+  weekend: { color: '#C9A84C' },
   daysGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   dayCell: { width: '14.28%', aspectRatio: 1, justifyContent: 'center', alignItems: 'center' },
   dayInner: { width: 30, height: 30, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  dayInnerSelected: { backgroundColor: '#1A3D7C' },
+  dayInnerToday: { backgroundColor: 'rgba(201,168,76,0.2)' },
+  dayInnerSelected: { backgroundColor: '#C9A84C' },
   dayInnerPast: { opacity: 0.3 },
-  dayCellText: { fontSize: 13, fontWeight: '600', color: '#0F2447' },
-  dayCellTextSelected: { color: '#fff' },
-  dayCellTextPast: { color: '#9BA8C0' },
-  dayCellTextWeekend: { color: '#1A3D7C' },
-  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#C9A84C', marginTop: 1 },
-  dotSelected: { backgroundColor: '#C9A84C' },
+  dayCellText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)' },
+  dayCellTextToday: { color: '#C9A84C', fontWeight: '800' },
+  dayCellTextSelected: { color: '#0F2447' },
+  dayCellTextPast: { color: 'rgba(255,255,255,0.3)' },
+  dayCellTextWeekend: { color: '#C9A84C' },
+  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(201,168,76,0.6)', marginTop: 1 },
+  dotSelected: { backgroundColor: '#0F2447' },
   slotsSection: { paddingHorizontal: 20 },
-  sectionLabel: { fontSize: 10, letterSpacing: 2, color: '#6B7A99', fontWeight: '700', marginBottom: 12 },
+  sectionLabel: { fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.4)', fontWeight: '700', marginBottom: 12 },
   noSlotsWrap: { alignItems: 'center', paddingVertical: 32 },
-  noSlots: { color: '#6B7A99', fontSize: 14 },
+  noSlots: { color: 'rgba(255,255,255,0.3)', fontSize: 14 },
   slotsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  slotBtn: { backgroundColor: '#fff', borderRadius: 14, padding: 14, alignItems: 'center', minWidth: '47%', elevation: 2 },
-  slotBtnActive: { backgroundColor: '#1A3D7C' },
-  slotTime: { fontSize: 18, fontWeight: '700', color: '#0F2447' },
-  slotTimeActive: { color: '#fff' },
-  slotEnd: { fontSize: 11, color: '#6B7A99', marginTop: 3 },
+  slotBtn: { backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 14, padding: 14, alignItems: 'center', minWidth: '47%' },
+  slotBtnActive: { backgroundColor: '#C9A84C' },
+  slotTime: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  slotTimeActive: { color: '#0F2447' },
+  slotEnd: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 3 },
   confirmSection: { padding: 24 },
-  confirmCard: { backgroundColor: '#1A3D7C', borderRadius: 20, padding: 20, marginBottom: 16 },
+  confirmCard: { backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 20, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' },
   confirmDate: { fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 4 },
   confirmTime: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 8 },
   confirmPrice: { fontSize: 22, fontWeight: '800', color: '#C9A84C' },
