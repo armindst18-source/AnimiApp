@@ -211,40 +211,44 @@ export default function WelcomeScreen({ navigation }) {
   };
 
   return (
-    
-      
-      
-         setLang('ru')}>
-          🇷🇺 RU
-        
-         setLang('en')}>
-          🇬🇧 EN
-        
-      
-      
-        
-          
-        
-        Маргарита Журавлёва
-        {t.tagline}
-        {t.desc}
-      
-      
+    <View style={s.container}>
+      <StatusBar barStyle="light-content" />
+      <View style={s.langRow}>
+        <TouchableOpacity style={[s.langBtn, lang === 'ru' && s.langActive]} onPress={() => setLang('ru')}>
+          <Text style={[s.langText, lang === 'ru' && s.langTextActive]}>🇷🇺 RU</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[s.langBtn, lang === 'en' && s.langActive]} onPress={() => setLang('en')}>
+          <Text style={[s.langText, lang === 'en' && s.langTextActive]}>🇬🇧 EN</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={s.center}>
+        <View style={s.photoFrame}>
+          <Image
+            source={require('../../../assets/splash.png')}
+            style={s.psychPhoto}
+            resizeMode="cover"
+          />
+        </View>
+        <Text style={s.psychName}>Маргарита Журавлёва</Text>
+        <Text style={s.tagline}>{t.tagline}</Text>
+        <Text style={s.desc}>{t.desc}</Text>
+      </View>
+      <View style={s.features}>
         {[
           { icon: '⏱', text: t.session },
           { icon: '🔒', text: t.private },
           { icon: '🌐', text: t.online },
         ].map((f, i) => (
-          
-            {f.icon}
-            {f.text}
-          
+          <View key={i} style={s.featureItem}>
+            <Text style={s.featureIcon}>{f.icon}</Text>
+            <Text style={s.featureText}>{f.text}</Text>
+          </View>
         ))}
-      
-      
-        {t.enter}
-      
-    
+      </View>
+      <TouchableOpacity style={s.btn} onPress={handleStart}>
+        <Text style={s.btnText}>{t.enter}</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
