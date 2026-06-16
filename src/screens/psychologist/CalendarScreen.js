@@ -9,10 +9,10 @@ const pad = (n) => String(n).padStart(2, '0');
 const formatDate = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
 const getMonthDays = (year, month) => {
-  const days     = [];
+  const days = [];
   const firstDay = new Date(year, month, 1);
-  const lastDay  = new Date(year, month + 1, 0);
-  let startDow   = firstDay.getDay();
+  const lastDay = new Date(year, month + 1, 0);
+  let startDow = firstDay.getDay();
   startDow = startDow === 0 ? 6 : startDow - 1;
   for (let i = 0; i < startDow; i++) days.push(null);
   for (let d = 1; d <= lastDay.getDate(); d++) days.push(d);
@@ -21,7 +21,7 @@ const getMonthDays = (year, month) => {
 };
 
 const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const DAYS_RU   = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 
 export default function CalendarScreen({ navigation }) {
   const today = new Date();
@@ -37,7 +37,8 @@ export default function CalendarScreen({ navigation }) {
 
   const loadMonthData = async () => {
     const from = formatDate(year, month, 1);
-    const to   = formatDate(year, month + 1, 0);
+    const lastDay = new Date(year, month + 1, 0);
+    const to = formatDate(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate());
     const { data } = await supabase
       .from('time_slots').select('date')
       .gte('date', from).lte('date', to);
@@ -56,11 +57,13 @@ export default function CalendarScreen({ navigation }) {
         .from('time_slots').select('*')
         .eq('date', dateStr).order('start_time');
       setSlots(slotData || []);
-      const { data: bookData } = await supabase
-        .from('bookings')
-        .select('*, time_slots(*), users(*)')
-        .in('slot_id', (slotData || []).map(s => s.id));
-      setBookings(bookData || []);
+      if (slotData && slotData.length > 0) {
+        const { data: bookData } = await supabase
+          .from('bookings')
+          .select('*, time_slots(*), users(*)')
+          .in('slot_id', slotData.map(s => s.id));
+        setBookings(bookData || []);
+      }
     } catch (e) { console.log(e); }
     finally { setLoading(false); }
   };
@@ -91,7 +94,7 @@ export default function CalendarScreen({ navigation }) {
     setSelectedDate(null);
   };
 
-  const days    = getMonthDays(year, month);
+  const days = getMonthDays(year, month);
   const todayStr = today.toISOString().split('T')[0];
 
   return (

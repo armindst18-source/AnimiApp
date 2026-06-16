@@ -15,10 +15,15 @@ export default function PsychChatScreen({ navigation, route }) {
   const [loading, setLoading]     = useState(true);
   const [sending, setSending]     = useState(false);
   const flatRef = useRef(null);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     init();
-    return () => { supabase.removeAllChannels(); };
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
   }, []);
 
   const init = async () => {
@@ -42,13 +47,14 @@ export default function PsychChatScreen({ navigation, route }) {
   };
 
   const subscribeMessages = (bId) => {
-    supabase.channel('psych-chat-' + bId)
+    const channel = supabase.channel('psych-chat-' + bId)
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public',
         table: 'messages', filter: 'booking_id=eq.' + bId,
       }, (payload) => {
         setMessages(prev => [...prev, payload.new]);
       }).subscribe();
+    channelRef.current = channel;
   };
 
   const sendMessage = async () => {

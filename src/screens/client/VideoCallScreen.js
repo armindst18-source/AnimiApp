@@ -8,6 +8,7 @@ import { WebView } from 'react-native-webview';
 export default function VideoCallScreen({ navigation, route }) {
   const { bookingId, lang = 'ru' } = route.params || {};
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const webRef = useRef(null);
 
   const roomName = 'animinava-session-' + (bookingId || 'default');
@@ -41,30 +42,39 @@ export default function VideoCallScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
-      {loading && (
+      {loading && !error && (
         <View style={s.loadingOverlay}>
           <ActivityIndicator size="large" color="#C9A84C" />
           <Text style={s.loadingText}>{lang === 'ru' ? 'Подключение...' : 'Connecting...'}</Text>
         </View>
       )}
 
-      <WebView
-        ref={webRef}
-        source={{ uri: jitsiUrl }}
-        style={s.webview}
-        allowsInlineMediaPlayback
-        mediaPlaybackRequiresUserAction={false}
-        onLoadEnd={() => setLoading(false)}
-        onError={() => {
-          setLoading(false);
-          Alert.alert(
-            lang === 'ru' ? 'Ошибка' : 'Error',
-            lang === 'ru' ? 'Не удалось подключиться.' : 'Could not connect.'
-          );
-        }}
-        javaScriptEnabled
-        domStorageEnabled
-      />
+      {error ? (
+        <View style={s.errorWrap}>
+          <Text style={s.errorIcon}>⚠️</Text>
+          <Text style={s.errorText}>
+            {lang === 'ru' ? 'Не удалось подключиться. Проверьте интернет.' : 'Could not connect. Check your internet.'}
+          </Text>
+          <TouchableOpacity style={s.retryBtn} onPress={() => { setError(false); setLoading(true); webRef.current?.reload(); }}>
+            <Text style={s.retryBtnText}>{lang === 'ru' ? 'Повторить' : 'Retry'}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <WebView
+          ref={webRef}
+          source={{ uri: jitsiUrl }}
+          style={s.webview}
+          allowsInlineMediaPlayback
+          mediaPlaybackRequiresUserAction={false}
+          onLoadEnd={() => setLoading(false)}
+          onError={() => {
+            setLoading(false);
+            setError(true);
+          }}
+          javaScriptEnabled
+          domStorageEnabled
+        />
+      )}
     </View>
   );
 }
@@ -81,4 +91,9 @@ const s = StyleSheet.create({
   webview: { flex: 1 },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0F2447', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   loadingText: { color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 14 },
+  errorWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
+  errorIcon: { fontSize: 48, marginBottom: 16 },
+  errorText: { color: 'rgba(255,255,255,0.6)', fontSize: 14, textAlign: 'center', marginBottom: 24, lineHeight: 22 },
+  retryBtn: { backgroundColor: '#C9A84C', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 12 },
+  retryBtnText: { color: '#0F2447', fontWeight: '700', fontSize: 14 },
 });

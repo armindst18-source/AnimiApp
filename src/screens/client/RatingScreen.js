@@ -11,7 +11,7 @@ export default function RatingScreen({ navigation, route }) {
   const [done, setDone]       = useState(false);
 
   const handleSubmit = async () => {
-    if (rating === 0) return;
+    if (rating === 0 || !bookingId) return;
     setSaving(true);
     try {
       await supabase.from('bookings').update({ rating }).eq('id', bookingId);
@@ -44,9 +44,9 @@ export default function RatingScreen({ navigation, route }) {
       </View>
 
       <TouchableOpacity
-        style={[s.btn, rating === 0 && s.btnDisabled]}
+        style={[s.btn, (rating === 0 || !bookingId) && s.btnDisabled]}
         onPress={handleSubmit}
-        disabled={rating === 0 || saving}
+        disabled={rating === 0 || saving || !bookingId}
       >
         {saving
           ? <ActivityIndicator color="#0F2447" />

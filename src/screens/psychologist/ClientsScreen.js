@@ -7,22 +7,32 @@ import {
 import { supabase } from '../../services/supabase';
 
 export default function ClientsScreen({ navigation }) {
-  const [clients, setClients]         = useState([]);
-  const [loading, setLoading]         = useState(true);
+  const [clients, setClients]               = useState([]);
+  const [loading, setLoading]               = useState(true);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [note, setNote]               = useState('');
-  const [savingNote, setSavingNote]   = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [psychId, setPsychId]         = useState(null);
+  const [note, setNote]                     = useState('');
+  const [savingNote, setSavingNote]         = useState(false);
+  const [modalVisible, setModalVisible]     = useState(false);
+  const [psychId, setPsychId]               = useState(null);
 
   useEffect(() => { loadClients(); }, []);
 
   const loadClients = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setPsychId(user.id);
+    const { data: slots } = await supabase
+      .from('time_slots')
+      .select('id')
+      .eq('psychologist_id', user.id);
+    if (!slots || slots.length === 0) {
+      setLoading(false);
+      return;
+    }
+    const slotIds = slots.map(s => s.id);
     const { data } = await supabase
       .from('bookings')
-      .select('*, users(*), time_slots(*)')
+      .select('*, users(*)')
+      .in('slot_id', slotIds)
       .order('created_at', { ascending: false });
     const unique = [];
     const seen   = new Set();

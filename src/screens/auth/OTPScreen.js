@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { supabase } from '../../services/supabase';
+import { getUserRole } from '../../services/auth';
 import { TEXTS } from './WelcomeScreen';
 
 export default function OTPScreen({ route, navigation }) {
@@ -25,7 +26,12 @@ export default function OTPScreen({ route, navigation }) {
       });
       if (error) throw error;
       const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile }  = await supabase
+      const role = await getUserRole(user.id);
+      if (role === 'psychologist') {
+        navigation.replace('Dashboard');
+        return;
+      }
+      const { data: profile } = await supabase
         .from('users').select('name').eq('id', user.id).single();
       if (profile?.name) {
         navigation.replace('Home');

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const TEXTS = {
@@ -222,9 +222,10 @@ export default function WelcomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
       <View style={s.center}>
-        <View style={s.logoCircle}>
-          <Text style={s.logoText}>Animi Nava</Text>
+        <View style={s.photoFrame}>
+          <Image source={require('../../../assets/psychologist.png')} style={s.psychPhoto} />
         </View>
+        <Text style={s.psychName}>Маргарита Журавлёва</Text>
         <Text style={s.tagline}>{t.tagline}</Text>
         <Text style={s.desc}>{t.desc}</Text>
       </View>
@@ -255,8 +256,9 @@ const s = StyleSheet.create({
   langText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '600' },
   langTextActive: { color: '#0F2447' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  logoCircle: { width: 100, height: 100, borderRadius: 30, backgroundColor: 'rgba(201,168,76,0.15)', borderWidth: 2, borderColor: 'rgba(201,168,76,0.4)', justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-  logoText: { fontSize: 22, fontWeight: '900', color: '#C9A84C' },
+  photoFrame: { width: 120, height: 120, borderRadius: 36, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(201,168,76,0.5)', elevation: 8 },
+  psychPhoto: { width: 120, height: 120 },
+  psychName: { fontSize: 18, fontWeight: '700', color: '#C9A84C', marginBottom: 12 },
   tagline: { fontSize: 20, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 10 },
   desc: { fontSize: 13, color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 20 },
   features: { gap: 10, marginBottom: 28 },

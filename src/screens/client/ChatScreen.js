@@ -5,18 +5,24 @@ import { TEXTS } from '../auth/WelcomeScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ChatScreen({ navigation }) {
-  const [lang, setLang]       = useState('ru');
-  const [messages, setMessages] = useState([]);
-  const [text, setText]       = useState('');
-  const [userId, setUserId]   = useState(null);
+  const [lang, setLang]           = useState('ru');
+  const [messages, setMessages]   = useState([]);
+  const [text, setText]           = useState('');
+  const [userId, setUserId]       = useState(null);
   const [bookingId, setBookingId] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const flatRef = useRef(null);
+  const [loading, setLoading]     = useState(true);
+  const [sending, setSending]     = useState(false);
+  const [noBooking, setNoBooking] = useState(false);
+  const flatRef    = useRef(null);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     init();
-    return () => { supabase.removeAllChannels(); };
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
   }, []);
 
   const init = async () => {
@@ -31,6 +37,8 @@ export default function ChatScreen({ navigation }) {
       setBookingId(bk.id);
       await loadMessages(bk.id);
       subscribeMessages(bk.id);
+    } else {
+      setNoBooking(true);
     }
     setLoading(false);
   };
@@ -42,10 +50,11 @@ export default function ChatScreen({ navigation }) {
   };
 
   const subscribeMessages = (bId) => {
-    supabase.channel('chat-' + bId)
+    const channel = supabase.channel('chat-' + bId)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'booking_id=eq.' + bId },
         (payload) => { setMessages(prev => [...prev, payload.new]); }
       ).subscribe();
+    channelRef.current = channel;
   };
 
   const sendMessage = async () => {
@@ -60,6 +69,23 @@ export default function ChatScreen({ navigation }) {
   const t = TEXTS[lang];
 
   if (loading) return <View style={s.loader}><ActivityIndicator size="large" color="#1A3D7C" /></View>;
+
+  if (noBooking) return (
+    <View style={s.container}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}><Text style={s.back}>←</Text></TouchableOpacity>
+        <Text style={s.headerTitle}>{t.myPsych}</Text>
+        <View style={{ width: 32 }} />
+      </View>
+      <View style={s.noBookingWrap}>
+        <Text style={s.noBookingIcon}>💬</Text>
+        <Text style={s.noBookingText}>{lang === 'ru' ? 'Сначала запишитесь на сессию' : 'Please book a session first'}</Text>
+        <TouchableOpacity style={s.noBookingBtn} onPress={() => navigation.navigate('Booking')}>
+          <Text style={s.noBookingBtnText}>{t.bookNow}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -108,22 +134,27 @@ export default function ChatScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container:{flex:1,backgroundColor:'#F0F4FF'},
-  loader:{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:'#F0F4FF'},
-  header:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:24,paddingTop:56,paddingBottom:12,backgroundColor:'#fff',elevation:2},
-  back:{color:'#1A3D7C',fontSize:22,fontWeight:'700'},
-  headerTitle:{fontSize:15,fontWeight:'700',color:'#0F2447'},
-  messagesList:{padding:16,gap:8,flexGrow:1,justifyContent:'flex-end'},
-  noMessages:{color:'#9BA8C0',textAlign:'center',marginTop:60,fontSize:14},
-  bubble:{maxWidth:'78%',borderRadius:18,padding:12,marginBottom:6},
-  bubbleMe:{backgroundColor:'#1A3D7C',alignSelf:'flex-end',borderBottomRightRadius:4},
-  bubbleThem:{backgroundColor:'#fff',alignSelf:'flex-start',borderBottomLeftRadius:4,elevation:1},
-  bubbleText:{color:'#0F2447',fontSize:14,lineHeight:20},
-  bubbleTextMe:{color:'#fff'},
-  bubbleTime:{fontSize:10,color:'rgba(0,0,0,0.3)',marginTop:4,textAlign:'right'},
-  bubbleTimeMe:{color:'rgba(255,255,255,0.5)'},
-  inputRow:{flexDirection:'row',alignItems:'flex-end',padding:12,paddingBottom:24,backgroundColor:'#fff',gap:10,elevation:8},
-  input:{flex:1,backgroundColor:'#F0F4FF',borderRadius:20,paddingHorizontal:16,paddingVertical:10,fontSize:14,color:'#0F2447',maxHeight:100},
-  sendBtn:{width:42,height:42,borderRadius:21,backgroundColor:'#1A3D7C',justifyContent:'center',alignItems:'center',elevation:4},
-  sendBtnText:{color:'#fff',fontSize:18,fontWeight:'700'},
+  container: { flex: 1, backgroundColor: '#F0F4FF' },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F4FF' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 56, paddingBottom: 12, backgroundColor: '#fff', elevation: 2 },
+  back: { color: '#1A3D7C', fontSize: 22, fontWeight: '700' },
+  headerTitle: { fontSize: 15, fontWeight: '700', color: '#0F2447' },
+  messagesList: { padding: 16, gap: 8, flexGrow: 1, justifyContent: 'flex-end' },
+  noMessages: { color: '#9BA8C0', textAlign: 'center', marginTop: 60, fontSize: 14 },
+  bubble: { maxWidth: '78%', borderRadius: 18, padding: 12, marginBottom: 6 },
+  bubbleMe: { backgroundColor: '#1A3D7C', alignSelf: 'flex-end', borderBottomRightRadius: 4 },
+  bubbleThem: { backgroundColor: '#fff', alignSelf: 'flex-start', borderBottomLeftRadius: 4, elevation: 1 },
+  bubbleText: { color: '#0F2447', fontSize: 14, lineHeight: 20 },
+  bubbleTextMe: { color: '#fff' },
+  bubbleTime: { fontSize: 10, color: 'rgba(0,0,0,0.3)', marginTop: 4, textAlign: 'right' },
+  bubbleTimeMe: { color: 'rgba(255,255,255,0.5)' },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', padding: 12, paddingBottom: 24, backgroundColor: '#fff', gap: 10, elevation: 8 },
+  input: { flex: 1, backgroundColor: '#F0F4FF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, color: '#0F2447', maxHeight: 100 },
+  sendBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#1A3D7C', justifyContent: 'center', alignItems: 'center', elevation: 4 },
+  sendBtnText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  noBookingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
+  noBookingIcon: { fontSize: 48, marginBottom: 16 },
+  noBookingText: { fontSize: 15, color: '#6B7A99', textAlign: 'center', marginBottom: 24 },
+  noBookingBtn: { backgroundColor: '#1A3D7C', borderRadius: 16, padding: 16, alignItems: 'center', width: '100%' },
+  noBookingBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

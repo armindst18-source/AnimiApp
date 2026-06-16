@@ -20,13 +20,20 @@ export default function ProfileScreen({ navigation }) {
     setEmail(user?.email || '');
     const { data } = await supabase.from('users').select('*').eq('id', user.id).single();
     setProfile(data);
-    const { data: bk } = await supabase
-      .from('bookings')
-      .select('*, time_slots(*)')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(10);
-    setHistory(bk || []);
+    const { data: slots } = await supabase
+      .from('time_slots')
+      .select('id');
+    if (slots && slots.length > 0) {
+      const slotIds = slots.map(s => s.id);
+      const { data: bk } = await supabase
+        .from('bookings')
+        .select('*, time_slots(*)')
+        .eq('user_id', user.id)
+        .in('slot_id', slotIds)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      setHistory(bk || []);
+    }
     setLoading(false);
   };
 
@@ -91,28 +98,30 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container:{flex:1,backgroundColor:'#F0F4FF'},
-  loader:{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:'#F0F4FF'},
-  header:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',padding:24,paddingTop:56},
-  back:{padding:4},backTxt:{color:'#1A3D7C',fontSize:14,fontWeight:'600'},
-  headerTitle:{fontSize:16,fontWeight:'700',color:'#0F2447'},
-  avatarWrap:{alignItems:'center',paddingVertical:28},
-  avatar:{width:84,height:84,borderRadius:42,backgroundColor:'#1A3D7C',justifyContent:'center',alignItems:'center',marginBottom:14,elevation:8},
-  avatarTxt:{color:'#fff',fontSize:34,fontWeight:'700'},
-  profileName:{fontSize:20,fontWeight:'700',color:'#0F2447',marginBottom:4},
-  profileEmail:{fontSize:13,color:'#6B7A99'},
-  card:{marginHorizontal:20,backgroundColor:'#fff',borderRadius:18,overflow:'hidden',elevation:3},
-  row:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',padding:16},
-  lbl:{color:'#6B7A99',fontSize:14},val:{fontWeight:'600',color:'#0F2447',fontSize:14,maxWidth:'60%',textAlign:'right'},
-  sep:{height:1,backgroundColor:'#F0F4FF',marginHorizontal:16},
-  historySection:{marginHorizontal:20,marginTop:20},
-  historyTitle:{fontSize:11,letterSpacing:1.5,color:'#6B7A99',fontWeight:'700',marginBottom:12},
-  historyItem:{backgroundColor:'#fff',borderRadius:14,padding:14,marginBottom:8,elevation:1},
-  historyDate:{fontSize:14,fontWeight:'700',color:'#0F2447',marginBottom:2},
-  historyTime:{fontSize:12,color:'#6B7A99',marginBottom:8},
-  historyBadge:{backgroundColor:'rgba(239,68,68,0.1)',borderRadius:8,paddingHorizontal:10,paddingVertical:4,alignSelf:'flex-start'},
-  historyBadgeOk:{backgroundColor:'rgba(34,197,94,0.1)'},
-  historyBadgeText:{fontSize:10,fontWeight:'700',color:'#DC2626'},
-  logoutBtn:{margin:20,marginTop:24,backgroundColor:'#FEE2E2',borderRadius:14,padding:16,alignItems:'center'},
-  logoutTxt:{color:'#DC2626',fontWeight:'700',fontSize:15},
+  container: { flex: 1, backgroundColor: '#F0F4FF' },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F4FF' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 24, paddingTop: 56 },
+  back: { padding: 4 },
+  backTxt: { color: '#1A3D7C', fontSize: 14, fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#0F2447' },
+  avatarWrap: { alignItems: 'center', paddingVertical: 28 },
+  avatar: { width: 84, height: 84, borderRadius: 42, backgroundColor: '#1A3D7C', justifyContent: 'center', alignItems: 'center', marginBottom: 14, elevation: 8 },
+  avatarTxt: { color: '#fff', fontSize: 34, fontWeight: '700' },
+  profileName: { fontSize: 20, fontWeight: '700', color: '#0F2447', marginBottom: 4 },
+  profileEmail: { fontSize: 13, color: '#6B7A99' },
+  card: { marginHorizontal: 20, backgroundColor: '#fff', borderRadius: 18, overflow: 'hidden', elevation: 3 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
+  lbl: { color: '#6B7A99', fontSize: 14 },
+  val: { fontWeight: '600', color: '#0F2447', fontSize: 14, maxWidth: '60%', textAlign: 'right' },
+  sep: { height: 1, backgroundColor: '#F0F4FF', marginHorizontal: 16 },
+  historySection: { marginHorizontal: 20, marginTop: 20 },
+  historyTitle: { fontSize: 11, letterSpacing: 1.5, color: '#6B7A99', fontWeight: '700', marginBottom: 12 },
+  historyItem: { backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 8, elevation: 1 },
+  historyDate: { fontSize: 14, fontWeight: '700', color: '#0F2447', marginBottom: 2 },
+  historyTime: { fontSize: 12, color: '#6B7A99', marginBottom: 8 },
+  historyBadge: { backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
+  historyBadgeOk: { backgroundColor: 'rgba(34,197,94,0.1)' },
+  historyBadgeText: { fontSize: 10, fontWeight: '700', color: '#DC2626' },
+  logoutBtn: { margin: 20, marginTop: 24, backgroundColor: '#FEE2E2', borderRadius: 14, padding: 16, alignItems: 'center' },
+  logoutTxt: { color: '#DC2626', fontWeight: '700', fontSize: 15 },
 });

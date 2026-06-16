@@ -49,14 +49,23 @@ export default function HomeScreen({ navigation }) {
       const { data: profile } = await supabase.from('users').select('name').eq('id', user.id).single();
       setUser({ ...user, name: profile?.name });
       const today = new Date().toISOString().split('T')[0];
-      const { data: bk } = await supabase
-        .from('bookings')
-        .select('*, time_slots(*)')
-        .eq('user_id', user.id)
-        .gte('time_slots.date', today)
-        .order('created_at', { ascending: true })
-        .limit(1);
-      setNextBooking(bk?.[0] || null);
+      const { data: slots } = await supabase
+        .from('time_slots')
+        .select('id, date, start_time, end_time')
+        .gte('date', today);
+      if (slots && slots.length > 0) {
+        const slotIds = slots.map(s => s.id);
+        const { data: bk } = await supabase
+          .from('bookings')
+          .select('*, time_slots(*)')
+          .eq('user_id', user.id)
+          .in('slot_id', slotIds)
+          .order('created_at', { ascending: true })
+          .limit(1);
+        setNextBooking(bk?.[0] || null);
+      } else {
+        setNextBooking(null);
+      }
     } catch (e) { console.log(e); }
     finally { setLoading(false); }
   };

@@ -49,6 +49,7 @@ export default function DashboardScreen({ navigation }) {
   const [selectedTimes, setSelectedTimes] = useState([]);
   const [saving, setSaving]               = useState(false);
   const [psychName, setPsychName]         = useState('');
+  const [psychEmail, setPsychEmail]       = useState('');
   const [switchingTest, setSwitchingTest] = useState(false);
   const days = getNext14Days();
 
@@ -57,15 +58,25 @@ export default function DashboardScreen({ navigation }) {
   const loadData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile }  = await supabase
+      setPsychEmail(user?.email || '');
+      const { data: profile } = await supabase
         .from('users').select('name').eq('id', user.id).single();
       setPsychName(profile?.name || 'Психолог');
       const today = new Date().toISOString().split('T')[0];
-      const { data } = await supabase
-        .from('bookings')
-        .select('*, time_slots(*), users(*)')
-        .filter('time_slots.date', 'eq', today);
-      setTodayBookings(data || []);
+      const { data: slots } = await supabase
+        .from('time_slots')
+        .select('id')
+        .eq('date', today);
+      if (slots && slots.length > 0) {
+        const slotIds = slots.map(s => s.id);
+        const { data } = await supabase
+          .from('bookings')
+          .select('*, time_slots(*), users(*)')
+          .in('slot_id', slotIds);
+        setTodayBookings(data || []);
+      } else {
+        setTodayBookings([]);
+      }
     } catch (e) { console.log(e); }
     finally { setLoading(false); }
   };
@@ -117,6 +128,16 @@ export default function DashboardScreen({ navigation }) {
     finally { setSaving(false); }
   };
 
+  const handleLogout = () => {
+    Alert.alert('Выйти?', 'Вы уверены?', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Выйти', style: 'destructive',
+        onPress: async () => { await supabase.auth.signOut(); },
+      },
+    ]);
+  };
+
   const handleSwitchToClient = async () => {
     setSwitchingTest(true);
     try {
@@ -146,9 +167,6 @@ export default function DashboardScreen({ navigation }) {
               ? <ActivityIndicator color="#C9A84C" size="small" />
               : <Text style={s.testBtnText}>👤</Text>}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => supabase.auth.signOut()}>
-            <Text style={s.logoutIcon}>🚪</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -170,6 +188,12 @@ export default function DashboardScreen({ navigation }) {
           onPress={() => navigation.navigate('Clients')}
         >
           <Text style={[s.tabText, tab === 'clients' && s.tabTextActive]}>👥 Клиенты</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.tab, tab === 'profile' && s.tabActive]}
+          onPress={() => setTab('profile')}
+        >
+          <Text style={[s.tabText, tab === 'profile' && s.tabTextActive]}>👤 Профиль</Text>
         </TouchableOpacity>
       </View>
 
@@ -280,6 +304,21 @@ export default function DashboardScreen({ navigation }) {
         </View>
       )}
 
+      {tab === 'profile' && (
+        <View style={s.section}>
+          <View style={s.profileCard}>
+            <View style={s.profileAvatar}>
+              <Text style={s.profileAvatarText}>{psychName?.[0]?.toUpperCase() || 'П'}</Text>
+            </View>
+            <Text style={s.profileName}>{psychName}</Text>
+            <Text style={s.profileEmail}>{psychEmail}</Text>
+          </View>
+          <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
+            <Text style={s.logoutBtnText}>🚪 Выйти из аккаунта</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={{ height: 80 }} />
     </ScrollView>
   );
@@ -294,11 +333,10 @@ const s = StyleSheet.create({
   headerBtns: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   testBtn: { backgroundColor: 'rgba(201,168,76,0.12)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.25)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
   testBtnText: { fontSize: 16 },
-  logoutIcon: { fontSize: 24 },
   tabs: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 14, padding: 4 },
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 12 },
   tabActive: { backgroundColor: '#C9A84C' },
-  tabText: { fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: '600' },
+  tabText: { fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: '600' },
   tabTextActive: { color: '#0F2447' },
   section: { paddingHorizontal: 20 },
   empty: { alignItems: 'center', paddingVertical: 48 },
@@ -335,4 +373,11 @@ const s = StyleSheet.create({
   legendText: { color: 'rgba(255,255,255,0.4)', fontSize: 11 },
   saveBtn: { backgroundColor: '#C9A84C', borderRadius: 14, padding: 16, alignItems: 'center', marginBottom: 20 },
   saveBtnText: { color: '#0F2447', fontWeight: '800', fontSize: 15 },
+  profileCard: { backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 20 },
+  profileAvatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#C9A84C', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  profileAvatarText: { color: '#0F2447', fontSize: 32, fontWeight: '700' },
+  profileName: { color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 6 },
+  profileEmail: { color: 'rgba(255,255,255,0.4)', fontSize: 13 },
+  logoutBtn: { backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.2)', borderRadius: 14, padding: 16, alignItems: 'center' },
+  logoutBtnText: { color: '#f87171', fontWeight: '700', fontSize: 15 },
 });

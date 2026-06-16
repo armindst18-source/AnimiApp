@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import { TEXTS } from '../auth/WelcomeScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -11,11 +11,11 @@ const PHASES = [
 
 export default function BreathingScreen({ navigation, route }) {
   const { bookingId, lang: routeLang, autoMode = true } = route.params || {};
-  const [lang, setLang]         = useState(routeLang || 'ru');
+  const [lang, setLang]           = useState(routeLang || 'ru');
   const [totalLeft, setTotalLeft] = useState(30);
-  const [phaseIdx, setPhaseIdx] = useState(0);
+  const [phaseIdx, setPhaseIdx]   = useState(0);
   const [phaseCount, setPhaseCount] = useState(4);
-  const [started, setStarted]   = useState(false);
+  const [started, setStarted]     = useState(false);
 
   const scaleAnim   = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(0.5)).current;
@@ -87,6 +87,15 @@ export default function BreathingScreen({ navigation, route }) {
     });
   };
 
+  const handleSkip = () => {
+    clearAll();
+    if (autoMode && bookingId) {
+      navigation.replace('Video', { bookingId });
+    } else {
+      navigation.goBack();
+    }
+  };
+
   const t = TEXTS[lang];
   const phaseLabels = {
     inhale: t.breathInhale,
@@ -115,11 +124,26 @@ export default function BreathingScreen({ navigation, route }) {
       </View>
 
       <View style={s.bottomSection}>
-        <Text style={s.countdownLabel}>{t.breathStarting}</Text>
-        <Text style={s.countdown}>{totalLeft}</Text>
-        <View style={s.progressBar}>
-          <View style={[s.progressFill, { width: `${(totalLeft / 30) * 100}%` }]} />
-        </View>
+        {autoMode ? (
+          <>
+            <Text style={s.countdownLabel}>{t.breathStarting}</Text>
+            <Text style={s.countdown}>{totalLeft}</Text>
+            <View style={s.progressBar}>
+              <View style={[s.progressFill, { width: `${(totalLeft / 30) * 100}%` }]} />
+            </View>
+          </>
+        ) : (
+          <View style={s.progressBar}>
+            <View style={[s.progressFill, { width: '100%' }]} />
+          </View>
+        )}
+        <TouchableOpacity style={s.skipBtn} onPress={handleSkip}>
+          <Text style={s.skipBtnText}>
+            {autoMode
+              ? (lang === 'ru' ? 'Пропустить' : 'Skip')
+              : (lang === 'ru' ? 'Завершить' : 'Finish')}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -138,6 +162,8 @@ const s = StyleSheet.create({
   bottomSection: { alignItems: 'center', width: '100%' },
   countdownLabel: { color: 'rgba(255,255,255,0.4)', fontSize: 12, letterSpacing: 1, marginBottom: 6 },
   countdown: { color: '#fff', fontSize: 52, fontWeight: '900', marginBottom: 16 },
-  progressBar: { width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
+  progressBar: { width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden', marginBottom: 16 },
   progressFill: { height: 4, backgroundColor: '#C9A84C', borderRadius: 2 },
+  skipBtn: { paddingHorizontal: 24, paddingVertical: 10, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 20 },
+  skipBtnText: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
 });

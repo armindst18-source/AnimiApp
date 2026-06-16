@@ -32,13 +32,16 @@ export default function AppNavigator() {
   const [user, setUser]       = useState(null);
   const [role, setRole]       = useState(null);
   const [loading, setLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
+        setRoleLoading(true);
         try { setRole(await getUserRole(session.user.id)); }
         catch { setRole('client'); }
+        finally { setRoleLoading(false); }
       }
       setLoading(false);
     });
@@ -47,8 +50,10 @@ export default function AppNavigator() {
       async (_event, session) => {
         if (session?.user) {
           setUser(session.user);
+          setRoleLoading(true);
           try { setRole(await getUserRole(session.user.id)); }
           catch { setRole('client'); }
+          finally { setRoleLoading(false); }
         } else {
           setUser(null);
           setRole(null);
@@ -59,7 +64,7 @@ export default function AppNavigator() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return (
+  if (loading || roleLoading) return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F2447' }}>
       <ActivityIndicator size="large" color="#C9A84C" />
     </View>

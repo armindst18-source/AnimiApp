@@ -10,11 +10,11 @@ import { TEXTS } from './WelcomeScreen';
 export default function PhoneScreen({ navigation, route }) {
   const lang = route.params?.lang || 'ru';
   const t    = TEXTS[lang];
-  const [email, setEmail]             = useState('');
-  const [loading, setLoading]         = useState(false);
+  const [email, setEmail]                       = useState('');
+  const [loading, setLoading]                   = useState(false);
   const [testClientLoading, setTestClientLoading] = useState(false);
   const [testPsychLoading, setTestPsychLoading]   = useState(false);
-  const [error, setError]             = useState('');
+  const [error, setError]                       = useState('');
 
   const handleSend = async () => {
     if (!email || !email.includes('@')) { setError(t.wrongEmail); return; }
@@ -42,7 +42,10 @@ export default function PhoneScreen({ navigation, route }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={s.inner}>
-        <Text style={s.logo}>Animi Nava</Text>
+        <View style={s.logoWrap}>
+          <Text style={s.logoAnim}>Animi</Text>
+          <Text style={s.logoNava}>Nava</Text>
+        </View>
         <Text style={s.subtitle}>{t.enterEmail}</Text>
 
         <TextInput
@@ -98,7 +101,9 @@ export default function PhoneScreen({ navigation, route }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F4FF' },
   inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
-  logo: { fontSize: 42, fontWeight: 'bold', color: '#1A3D7C', textAlign: 'center', marginBottom: 8 },
+  logoWrap: { alignItems: 'center', marginBottom: 8 },
+  logoAnim: { fontSize: 48, fontWeight: '900', color: '#1A3D7C', letterSpacing: 2 },
+  logoNava: { fontSize: 28, fontWeight: '300', color: '#C9A84C', letterSpacing: 8, marginTop: -8 },
   subtitle: { fontSize: 16, color: '#6B7A99', textAlign: 'center', marginBottom: 36 },
   input: { backgroundColor: '#fff', borderRadius: 16, padding: 16, fontSize: 16, color: '#1A3D7C', marginBottom: 12, elevation: 4 },
   error: { color: '#E07070', fontSize: 13, marginBottom: 8, textAlign: 'center' },
