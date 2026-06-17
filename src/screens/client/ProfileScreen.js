@@ -52,54 +52,54 @@ export default function ProfileScreen({ navigation }) {
     ]);
   };
 
-  if (loading) return ;
+  if (loading) return <View style={s.loader}><ActivityIndicator size="large" color="#1A3D7C" /></View>;
 
   return (
-    
-      
-         navigation.goBack()}>
-          ← {lang === 'ru' ? 'Назад' : 'Back'}
-        
-        {t.myProfile}
-        
-      
+    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+      <View style={s.header}>
+        <TouchableOpacity style={s.back} onPress={() => navigation.goBack()}>
+          <Text style={s.backTxt}>← {lang === 'ru' ? 'Назад' : 'Back'}</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>{t.myProfile}</Text>
+        <View style={{ width: 60 }} />
+      </View>
 
-      
-        {initial}
-        {profile?.name || '—'}
-        {email}
-      
+      <View style={s.avatarWrap}>
+        <View style={s.avatar}><Text style={s.avatarTxt}>{initial}</Text></View>
+        <Text style={s.profileName}>{profile?.name || '—'}</Text>
+        <Text style={s.profileEmail}>{email}</Text>
+      </View>
 
-      
-        {t.name}{profile?.name || '—'}
-        
-        Email{email}
-        
-        {t.phone}{profile?.phone || '—'}
-      
+      <View style={s.card}>
+        <View style={s.row}><Text style={s.lbl}>{t.name}</Text><Text style={s.val}>{profile?.name || '—'}</Text></View>
+        <View style={s.sep} />
+        <View style={s.row}><Text style={s.lbl}>Email</Text><Text style={s.val}>{email}</Text></View>
+        <View style={s.sep} />
+        <View style={s.row}><Text style={s.lbl}>{t.phone}</Text><Text style={s.val}>{profile?.phone || '—'}</Text></View>
+      </View>
 
       {history.length > 0 && (
-        
-          {t.history}
+        <View style={s.historySection}>
+          <Text style={s.historyTitle}>{t.history}</Text>
           {history.map(b => (
-            
-              {b.time_slots?.date}
-              
+            <View key={b.id} style={s.historyItem}>
+              <Text style={s.historyDate}>{b.time_slots?.date}</Text>
+              <Text style={s.historyTime}>
                 {formatTime(b.time_slots?.start_time)} — {formatTime(b.time_slots?.end_time)}
-              
-              
-                {b.status === 'confirmed' ? t.paid : t.pending}
-              
-            
+              </Text>
+              <View style={[s.historyBadge, b.status === 'confirmed' && s.historyBadgeOk]}>
+                <Text style={s.historyBadgeText}>{b.status === 'confirmed' ? t.paid : t.pending}</Text>
+              </View>
+            </View>
           ))}
-        
+        </View>
       )}
 
-      
-        🚪 {t.logout}
-      
-      
-    
+      <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
+        <Text style={s.logoutTxt}>🚪 {t.logout}</Text>
+      </TouchableOpacity>
+      <View style={{ height: 40 }} />
+    </ScrollView>
   );
 }
 

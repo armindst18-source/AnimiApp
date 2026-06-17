@@ -145,35 +145,35 @@ export default function BookingScreen({ navigation }) {
   const todayStr = today.toISOString().split('T')[0];
 
   return (
-    
-      
-         navigation.goBack()}>
-          ←
-        
-        {t.bookNow}
-        
-      
+    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={s.back}>←</Text>
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>{t.bookNow}</Text>
+        <View style={{ width: 32 }} />
+      </View>
 
-      
-        
-          
-            ‹
-          
-          {MONTHS[month]} {year}
-          
-            ›
-          
-        
+      <View style={s.calendarCard}>
+        <View style={s.monthNav}>
+          <TouchableOpacity style={s.navBtn} onPress={prevMonth}>
+            <Text style={s.navBtnText}>‹</Text>
+          </TouchableOpacity>
+          <Text style={s.monthTitle}>{MONTHS[month]} {year}</Text>
+          <TouchableOpacity style={s.navBtn} onPress={nextMonth}>
+            <Text style={s.navBtnText}>›</Text>
+          </TouchableOpacity>
+        </View>
 
-        
+        <View style={s.dayNamesRow}>
           {DAYS.map((d, i) => (
-            {d}
+            <Text key={i} style={[s.dayNameText, (i === 5 || i === 6) && s.weekend]}>{d}</Text>
           ))}
-        
+        </View>
 
-        
+        <View style={s.daysGrid}>
           {days.map((day, i) => {
-            if (!day) return ;
+            if (!day) return <View key={i} style={s.dayCell} />;
             const dateStr = formatDate(year, month, day);
             const isSelected = selectedDate === dateStr;
             const hasSlots = availableDates.includes(dateStr);
@@ -182,62 +182,79 @@ export default function BookingScreen({ navigation }) {
             const dow = i % 7;
             const isWeekend = dow === 5 || dow === 6;
             return (
-               handleDayPress(day)}
+              <TouchableOpacity
+                key={i}
+                style={s.dayCell}
+                onPress={() => handleDayPress(day)}
                 disabled={isPast}
               >
-                
-                  {day}
-                
+                <View style={[
+                  s.dayInner,
+                  isToday && s.dayInnerToday,
+                  isSelected && s.dayInnerSelected,
+                  isPast && s.dayInnerPast,
+                ]}>
+                  <Text style={[
+                    s.dayCellText,
+                    isToday && s.dayCellTextToday,
+                    isSelected && s.dayCellTextSelected,
+                    isPast && s.dayCellTextPast,
+                    isWeekend && !isSelected && !isPast && s.dayCellTextWeekend,
+                  ]}>{day}</Text>
+                </View>
                 {hasSlots && !isPast && (
-                  
+                  <View style={[s.dot, isSelected && s.dotSelected]} />
                 )}
-              
+              </TouchableOpacity>
             );
           })}
-        
-      
+        </View>
+      </View>
 
       {selectedDate && (
-        
-          {t.availableTime}
+        <View style={s.slotsSection}>
+          <Text style={s.sectionLabel}>{t.availableTime}</Text>
           {loadingSlots ? (
-            
+            <ActivityIndicator size="large" color="#C9A84C" style={{ marginTop: 24 }} />
           ) : slots.length === 0 ? (
-            
-              {t.noSlots}
-            
+            <View style={s.noSlotsWrap}>
+              <Text style={s.noSlots}>{t.noSlots}</Text>
+            </View>
           ) : (
-            
+            <View style={s.slotsGrid}>
               {slots.map(slot => (
-                 setSelectedSlot(slot)}
+                <TouchableOpacity
+                  key={slot.id}
+                  style={[s.slotBtn, selectedSlot?.id === slot.id && s.slotBtnActive]}
+                  onPress={() => setSelectedSlot(slot)}
                 >
-                  
+                  <Text style={[s.slotTime, selectedSlot?.id === slot.id && s.slotTimeActive]}>
                     {formatTime(slot.start_time)}
-                  
-                  
+                  </Text>
+                  <Text style={[s.slotEnd, selectedSlot?.id === slot.id && s.slotTimeActive]}>
                     {lang === 'ru' ? 'до' : 'to'} {formatTime(slot.end_time)}
-                  
-                
+                  </Text>
+                </TouchableOpacity>
               ))}
-            
+            </View>
           )}
-        
+        </View>
       )}
 
       {selectedSlot && (
-        
-          
-            {selectedDate}
-            {formatTime(selectedSlot.start_time)} — {formatTime(selectedSlot.end_time)} · 1.5 {lang === 'ru' ? 'ч' : 'h'}
-            6 000 ₽
-          
-          
-            {booking ?  : {t.book}}
-          
-        
+        <View style={s.confirmSection}>
+          <View style={s.confirmCard}>
+            <Text style={s.confirmDate}>{selectedDate}</Text>
+            <Text style={s.confirmTime}>{formatTime(selectedSlot.start_time)} — {formatTime(selectedSlot.end_time)} · 1.5 {lang === 'ru' ? 'ч' : 'h'}</Text>
+            <Text style={s.confirmPrice}>6 000 ₽</Text>
+          </View>
+          <TouchableOpacity style={s.bookBtn} onPress={handleBook} disabled={booking}>
+            {booking ? <ActivityIndicator color="#0F2447" /> : <Text style={s.bookBtnText}>{t.book}</Text>}
+          </TouchableOpacity>
+        </View>
       )}
-      
-    
+      <View style={{ height: 80 }} />
+    </ScrollView>
   );
 }
 
