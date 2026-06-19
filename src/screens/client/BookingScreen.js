@@ -30,6 +30,17 @@ const formatTime = (timeStr) => {
   return `${parts[0]}:${parts[1]}`;
 };
 
+const NOTICES = {
+  ru: {
+    noRefund: 'Оплата за сессию возврату не подлежит. Пожалуйста, убедитесь в правильности выбранного времени перед подтверждением записи.',
+    reschedule: 'Перенос сессии возможен не позднее чем за 12 часов до её начала. Данная возможность предоставляется только один раз.',
+  },
+  en: {
+    noRefund: 'Session payments are non-refundable. Please ensure your chosen time is correct before confirming your booking.',
+    reschedule: 'You may reschedule your session up to 12 hours in advance. Rescheduling is permitted once only.',
+  },
+};
+
 export default function BookingScreen({ navigation }) {
   const [lang, setLang] = useState('ru');
   const today = new Date();
@@ -51,6 +62,7 @@ export default function BookingScreen({ navigation }) {
   }, [year, month]);
 
   const t = TEXTS[lang];
+  const notice = NOTICES[lang];
   const MONTHS = lang === 'ru' ? MONTHS_RU : MONTHS_EN;
   const DAYS = lang === 'ru' ? DAYS_RU : DAYS_EN;
 
@@ -248,6 +260,16 @@ export default function BookingScreen({ navigation }) {
             <Text style={s.confirmTime}>{formatTime(selectedSlot.start_time)} — {formatTime(selectedSlot.end_time)} · 1.5 {lang === 'ru' ? 'ч' : 'h'}</Text>
             <Text style={s.confirmPrice}>6 000 ₽</Text>
           </View>
+
+          <View style={s.noticeCard}>
+            <Text style={s.noticeIcon}>ℹ️</Text>
+            <View style={s.noticeTexts}>
+              <Text style={s.noticeText}>{notice.noRefund}</Text>
+              <View style={s.noticeDivider} />
+              <Text style={s.noticeText}>{notice.reschedule}</Text>
+            </View>
+          </View>
+
           <TouchableOpacity style={s.bookBtn} onPress={handleBook} disabled={booking}>
             {booking ? <ActivityIndicator color="#0F2447" /> : <Text style={s.bookBtnText}>{t.book}</Text>}
           </TouchableOpacity>
@@ -299,6 +321,11 @@ const s = StyleSheet.create({
   confirmDate: { fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 4 },
   confirmTime: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 8 },
   confirmPrice: { fontSize: 22, fontWeight: '800', color: '#C9A84C' },
+  noticeCard: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', gap: 10 },
+  noticeIcon: { fontSize: 16, marginTop: 2 },
+  noticeTexts: { flex: 1 },
+  noticeText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 18 },
+  noticeDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 10 },
   bookBtn: { backgroundColor: '#C9A84C', borderRadius: 16, padding: 17, alignItems: 'center', elevation: 6 },
   bookBtnText: { color: '#0F2447', fontSize: 16, fontWeight: '800' },
 });

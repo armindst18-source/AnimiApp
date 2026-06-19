@@ -21,8 +21,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0F2447",
-        "foregroundImage": "./assets/icon.png"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0F2447"
       },
       "package": "com.animinava.app",
       "permissions": [
@@ -36,7 +36,8 @@
       "favicon": "./assets/icon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-splash-screen"
     ],
     "extra": {
       "eas": {
