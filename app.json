@@ -1,48 +1,50 @@
 {
-  "expo": {
-    "name": "Animi Nava",
-    "slug": "animinava",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0F2447"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.animinava.app",
-      "infoPlist": {
-        "NSCameraUsageDescription": "Needed for video sessions",
-        "NSMicrophoneUsageDescription": "Needed for video sessions"
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#0F2447"
-      },
-      "package": "com.animinava.app",
-      "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ]
-    },
-    "web": {
-      "favicon": "./assets/icon.png"
-    },
-    "plugins": [
-      "expo-font",
-      "expo-splash-screen"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "8a30c6fd-f75c-455c-b1bd-a63fad96576a"
-      }
-    }
-  }
+"expo": {
+"name": "Animi Nava",
+"slug": "animinava",
+"version": "1.0.0",
+"orientation": "portrait",
+"icon": "./assets/icon.png",
+"userInterfaceStyle": "light",
+"ios": {
+"supportsTablet": true,
+"bundleIdentifier": "com.animinava.app",
+"infoPlist": {
+"NSCameraUsageDescription": "Needed for video sessions",
+"NSMicrophoneUsageDescription": "Needed for video sessions"
+}
+},
+"android": {
+"adaptiveIcon": {
+"foregroundImage": "./assets/icon.png",
+"backgroundColor": "#0F2447"
+},
+"package": "com.animinava.app",
+"permissions": [
+"CAMERA",
+"RECORD_AUDIO",
+"READ_EXTERNAL_STORAGE",
+"WRITE_EXTERNAL_STORAGE"
+]
+},
+"web": {
+"favicon": "./assets/icon.png"
+},
+"plugins": [
+"expo-font",
+[
+"expo-splash-screen",
+{
+"image": "./assets/splash-icon.png",
+"resizeMode": "contain",
+"backgroundColor": "#0F2447"
+}
+]
+],
+"extra": {
+"eas": {
+"projectId": "8a30c6fd-f75c-455c-b1bd-a63fad96576a"
+}
+}
+}
 }
