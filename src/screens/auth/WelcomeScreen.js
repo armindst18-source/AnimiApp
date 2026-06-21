@@ -213,39 +213,60 @@ export default function WelcomeScreen({ navigation }) {
   return (
     <View style={s.container}>
       <StatusBar barStyle="light-content" />
+
       <View style={s.langRow}>
         <TouchableOpacity style={[s.langBtn, lang === 'ru' && s.langActive]} onPress={() => setLang('ru')}>
-          <Text style={[s.langText, lang === 'ru' && s.langTextActive]}>🇷🇺 RU</Text>
+          <Text style={[s.langText, lang === 'ru' && s.langTextActive]}>RU</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[s.langBtn, lang === 'en' && s.langActive]} onPress={() => setLang('en')}>
-          <Text style={[s.langText, lang === 'en' && s.langTextActive]}>🇬🇧 EN</Text>
+          <Text style={[s.langText, lang === 'en' && s.langTextActive]}>EN</Text>
         </TouchableOpacity>
       </View>
+
       <View style={s.center}>
-        <View style={s.photoFrame}>
-          <Image
-            source={require('../../../assets/splash.png')}
-            style={s.psychPhoto}
-            resizeMode="cover"
-          />
+        <View style={s.frameOuter}>
+          <View style={s.frameRing}>
+            <View style={s.photoFrame}>
+              <Image
+                source={require('../../../assets/splash.png')}
+                style={s.psychPhoto}
+                resizeMode="cover"
+              />
+            </View>
+          </View>
         </View>
+
         <Text style={s.psychName}>Маргарита Журавлёва</Text>
+
+        <View style={s.divider}>
+          <View style={s.divLine} />
+          <View style={s.divDot} />
+          <View style={s.divLine} />
+        </View>
+
         <Text style={s.tagline}>{t.tagline}</Text>
         <Text style={s.desc}>{t.desc}</Text>
       </View>
+
       <View style={s.features}>
         {[
           { icon: '⏱', text: t.session },
           { icon: '🔒', text: t.private },
           { icon: '🌐', text: t.online },
         ].map((f, i) => (
-          <View key={i} style={s.featureItem}>
-            <Text style={s.featureIcon}>{f.icon}</Text>
-            <Text style={s.featureText}>{f.text}</Text>
+          <View key={i}>
+            <View style={s.featureItem}>
+              <View style={s.featureIconWrap}>
+                <Text style={s.featureIcon}>{f.icon}</Text>
+              </View>
+              <Text style={s.featureText}>{f.text}</Text>
+            </View>
+            {i < 2 && <View style={s.featureSep} />}
           </View>
         ))}
       </View>
-      <TouchableOpacity style={s.btn} onPress={handleStart}>
+
+      <TouchableOpacity style={s.btn} onPress={handleStart} activeOpacity={0.85}>
         <Text style={s.btnText}>{t.enter}</Text>
       </TouchableOpacity>
     </View>
@@ -254,21 +275,82 @@ export default function WelcomeScreen({ navigation }) {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0F2447', paddingHorizontal: 28, paddingTop: 56, paddingBottom: 36 },
-  langRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginBottom: 20 },
-  langBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+
+  langRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginBottom: 16 },
+  langBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.25)' },
   langActive: { backgroundColor: '#C9A84C', borderColor: '#C9A84C' },
-  langText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '600' },
+  langText: { color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   langTextActive: { color: '#0F2447' },
+
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  photoFrame: { width: 130, height: 130, borderRadius: 65, overflow: 'hidden', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(201,168,76,0.5)', backgroundColor: '#fff' },
-  psychPhoto: { width: 130, height: 130, backgroundColor: 'transparent' },
-  psychName: { fontSize: 18, fontWeight: '700', color: '#C9A84C', marginBottom: 12 },
-  tagline: { fontSize: 20, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 10 },
-  desc: { fontSize: 13, color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 20 },
-  features: { gap: 10, marginBottom: 28 },
-  featureItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  featureIcon: { fontSize: 18 },
-  featureText: { color: 'rgba(255,255,255,0.7)', fontSize: 13 },
-  btn: { backgroundColor: '#C9A84C', borderRadius: 16, padding: 17, alignItems: 'center', elevation: 6 },
-  btnText: { color: '#0F2447', fontSize: 15, fontWeight: '800' },
+
+  frameOuter: {
+    marginBottom: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    elevation: 14,
+  },
+  frameRing: {
+    width: 156,
+    height: 156,
+    borderRadius: 78,
+    borderWidth: 1.5,
+    borderColor: 'rgba(201,168,76,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 6,
+  },
+  photoFrame: {
+    width: 138,
+    height: 138,
+    borderRadius: 69,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#C9A84C',
+    backgroundColor: '#fff',
+  },
+  psychPhoto: { width: 138, height: 138, backgroundColor: 'transparent' },
+
+  psychName: { fontSize: 19, fontWeight: '700', color: '#fff', marginBottom: 14, letterSpacing: 0.3 },
+
+  divider: { flexDirection: 'row', alignItems: 'center', gap: 8, width: 130, marginBottom: 18 },
+  divLine: { flex: 1, height: 1, backgroundColor: 'rgba(201,168,76,0.3)' },
+  divDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#C9A84C' },
+
+  tagline: { fontSize: 21, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 12, lineHeight: 28 },
+  desc: { fontSize: 13.5, color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 21, paddingHorizontal: 8 },
+
+  features: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(201,168,76,0.15)',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    marginBottom: 26,
+  },
+  featureItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 13, paddingHorizontal: 8 },
+  featureIconWrap: {
+    width: 34, height: 34, borderRadius: 10,
+    backgroundColor: 'rgba(201,168,76,0.12)',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  featureIcon: { fontSize: 16 },
+  featureText: { color: 'rgba(255,255,255,0.75)', fontSize: 13.5, flex: 1 },
+  featureSep: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginHorizontal: 8 },
+
+  btn: {
+    backgroundColor: '#C9A84C',
+    borderRadius: 17,
+    paddingVertical: 18,
+    alignItems: 'center',
+    shadowColor: '#C9A84C',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  btnText: { color: '#0F2447', fontSize: 15.5, fontWeight: '800', letterSpacing: 0.3 },
 });

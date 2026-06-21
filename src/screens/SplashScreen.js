@@ -6,13 +6,14 @@ import {
 import Svg, { Line, Rect, Polygon, Circle } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
-const FRAME = width * 0.78;
-const FRAME_H = FRAME * 0.85;
+const FRAME = width * 0.85;
+const FRAME_H = FRAME * 0.9;
 
 export default function SplashScreen({ navigation }) {
   const [stage, setStage] = useState('studio');
 
   const studioOpacity = useRef(new Animated.Value(0)).current;
+  const studioScale   = useRef(new Animated.Value(0.96)).current;
   const photoOpacity  = useRef(new Animated.Value(0)).current;
   const photoScale    = useRef(new Animated.Value(0.95)).current;
   const nameOpacity   = useRef(new Animated.Value(0)).current;
@@ -25,9 +26,12 @@ export default function SplashScreen({ navigation }) {
 
   const runStudio = () => {
     Animated.sequence([
-      Animated.timing(studioOpacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-      Animated.delay(1400),
-      Animated.timing(studioOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.parallel([
+        Animated.timing(studioOpacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(studioScale,   { toValue: 1, duration: 800, useNativeDriver: true }),
+      ]),
+      Animated.delay(2400),
+      Animated.timing(studioOpacity, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start(() => {
       setStage('photo');
       runPhoto();
@@ -36,18 +40,18 @@ export default function SplashScreen({ navigation }) {
 
   const runPhoto = () => {
     Animated.parallel([
-      Animated.timing(photoOpacity,  { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(photoScale,    { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(nameOpacity,   { toValue: 1, duration: 700, delay: 600,  useNativeDriver: true }),
-      Animated.timing(bioOpacity,    { toValue: 1, duration: 700, delay: 1000, useNativeDriver: true }),
-      Animated.timing(animiOpacity,  { toValue: 1, duration: 700, delay: 1600, useNativeDriver: true }),
+      Animated.timing(photoOpacity,  { toValue: 1, duration: 900, useNativeDriver: true }),
+      Animated.timing(photoScale,    { toValue: 1, duration: 900, useNativeDriver: true }),
+      Animated.timing(nameOpacity,   { toValue: 1, duration: 700, delay: 700,  useNativeDriver: true }),
+      Animated.timing(bioOpacity,    { toValue: 1, duration: 700, delay: 1100, useNativeDriver: true }),
+      Animated.timing(animiOpacity,  { toValue: 1, duration: 700, delay: 1800, useNativeDriver: true }),
     ]).start();
 
     setTimeout(() => {
-      Animated.timing(photoOpacity, { toValue: 0, duration: 600, useNativeDriver: true }).start(() => {
+      Animated.timing(photoOpacity, { toValue: 0, duration: 700, useNativeDriver: true }).start(() => {
         navigation.replace('Welcome');
       });
-    }, 5500);
+    }, 7500);
   };
 
   return (
@@ -55,7 +59,7 @@ export default function SplashScreen({ navigation }) {
       <StatusBar barStyle="light-content" backgroundColor="#0F2447" />
 
       {stage === 'studio' && (
-        <Animated.View style={[s.studioWrap, { opacity: studioOpacity }]}>
+        <Animated.View style={[s.studioWrap, { opacity: studioOpacity, transform: [{ scale: studioScale }] }]}>
           <Text style={s.studioName}>Armgo</Text>
           <Text style={s.studioSub}>Studio</Text>
           <View style={s.studioDivider}>
@@ -71,6 +75,8 @@ export default function SplashScreen({ navigation }) {
         <Animated.View style={[s.photoWrap, { opacity: photoOpacity }]}>
 
           <Animated.View style={[s.outerFrame, { transform: [{ scale: photoScale }] }]}>
+
+            <View style={s.frameShadow} />
 
             <View style={s.photoContainer}>
               <Image
@@ -158,7 +164,23 @@ const s = StyleSheet.create({
     width: FRAME + 40,
     height: FRAME_H + 40,
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+
+  frameShadow: {
+    position: 'absolute',
+    top: 28,
+    left: 24,
+    right: 16,
+    bottom: 12,
+    backgroundColor: '#000',
+    opacity: 0.35,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
   },
 
   photoContainer: {
@@ -167,19 +189,20 @@ const s = StyleSheet.create({
     left: 20,
     width: FRAME,
     height: FRAME_H,
-    borderRadius: 8,
+    borderRadius: 10,
     overflow: 'hidden',
+    backgroundColor: '#fff',
   },
 
-  photo: { width: FRAME, height: FRAME_H },
+  photo: { width: FRAME, height: FRAME_H, backgroundColor: 'transparent' },
 
   photoGrad: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 100,
-    backgroundColor: 'rgba(15,36,71,0.5)',
+    height: 60,
+    backgroundColor: 'rgba(15,36,71,0.18)',
   },
 
   svgLayer: {
@@ -189,16 +212,16 @@ const s = StyleSheet.create({
     zIndex: 10,
   },
 
-  nameWrap: { alignItems: 'center', marginBottom: 8 },
-  psychName: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 8, textAlign: 'center' },
-  bioWrap: { alignItems: 'center', gap: 2 },
-  bioText: { fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: 0.3 },
+  nameWrap: { alignItems: 'center', marginBottom: 10 },
+  psychName: { fontSize: 21, fontWeight: '700', color: '#fff', marginBottom: 9, textAlign: 'center', letterSpacing: 0.3 },
+  bioWrap: { alignItems: 'center', gap: 3 },
+  bioText: { fontSize: 11.5, color: 'rgba(255,255,255,0.5)', letterSpacing: 0.4 },
 
-  animiSection: { alignItems: 'center', marginTop: 12 },
-  animiDivider: { flexDirection: 'row', alignItems: 'center', gap: 8, width: 140, marginBottom: 10 },
+  animiSection: { alignItems: 'center', marginTop: 14 },
+  animiDivider: { flexDirection: 'row', alignItems: 'center', gap: 8, width: 140, marginBottom: 12 },
   animiLine: { flex: 1, height: 1, backgroundColor: 'rgba(201,168,76,0.3)' },
   animiDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#C9A84C' },
-  animiName: { fontSize: 28, fontWeight: '900', color: '#C9A84C', letterSpacing: 4, marginBottom: 4 },
-  animiRu: { fontSize: 13, color: 'rgba(255,255,255,0.7)', letterSpacing: 1.5, marginBottom: 2 },
+  animiName: { fontSize: 29, fontWeight: '900', color: '#C9A84C', letterSpacing: 4, marginBottom: 5 },
+  animiRu: { fontSize: 13, color: 'rgba(255,255,255,0.72)', letterSpacing: 1.5, marginBottom: 2 },
   animiEn: { fontSize: 11, color: 'rgba(201,168,76,0.55)', letterSpacing: 2 },
 });
